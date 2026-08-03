@@ -1,0 +1,213 @@
+<!-- Header Area Start-->
+<header>
+    <!-- Header Top Area Start -->
+    <div class="ca-header-top theme-bg-1 d-none d-xl-block pt-16 pb-16">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-2">
+                    <div class="ca-header-top-content d-flex">
+                        <div class="ca-header-top-icon">
+                            <span class="mr-8"><img src="/img/icon/ca-icon-1.1.svg" alt=""></span>
+                        </div>
+                        <div class="ca-header-top-text">
+                            <a href="mailto:demo@gmail.com" class="ca-top-title text-white">Demo@gmail.com</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="ca-header-top-content d-flex ml-80">
+                        <div class="ca-header-top-icon">
+                            <span class="mr-8"><img src="/img/icon/ca-icon-1.2.svg" alt=""></span>
+                        </div>
+                        <div class="ca-header-top-text">
+                            <a href="" class="ca-top-title text-white">73 Bridge St Brooklyn, USA.</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="ca-header-top-content d-flex ml-80">
+                        <div class="ca-header-top-icon">
+                            <span class="mr-8"><img src="/img/icon/ca-icon-1.3.svg" alt=""></span>
+                        </div>
+                        <div class="ca-header-top-text">
+                            <a href="" class="ca-top-title text-white">Tuesday - Saturday 8:00 Am - 5:00 Pm </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="ca-header-top-content d-flex justify-content-end">
+                        <div class="ca-header-top-icon">
+                            <span class="mr-8"><img src="/img/icon/ca-icon-1.4.svg" alt=""></span>
+                        </div>
+                        <div class="ca-header-top-text">
+                            <a href="tel:+92152226132" class="ca-top-title text-white">Call Now: +921 5222 6132</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Header Top Area End -->
+    <div class="ca-header-area ca-header-1 stiky pt-16 pb-16">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-xl-2 col-lg col-md-6 col-6">
+                    <!-- ca-logo -->
+                    <div class="ca-logo">
+                        <a href="<?php echo e(route('second', ['demo', 'index-03'])); ?>"><img src="/img/logo/ca-logo1.1.png" alt=""></a>
+                    </div>
+                </div>
+                <div class="col-xl-8 col-lg-7 d-none d-lg-block">
+                    <!-- ca-main-menu -->
+                    <div class="ca-main-menu">
+                        <nav class="ca-mobile-menu-active-3">
+                            <ul>
+                                <li>
+                                    <a href="#">Home <span><i class="fa-solid fa-angle-down"></i></span></a>
+                                    <ul class="sub-menu">
+                                        <li><a href="<?php echo e(route('any', 'index')); ?>">Home 01</a></li>
+                                        <li><a href="<?php echo e(route('second', ['demo', 'index-02'])); ?>">Home 02</a></li>
+                                        <li><a href="<?php echo e(route('second', ['demo', 'index-03'])); ?>">Home 03</a></li>
+                                        <li><a href="<?php echo e(route('second', ['demo', 'index-04'])); ?>">Home 04</a></li>
+                                    </ul>
+                                </li>
+
+                                <li><a href="<?php echo e(route('second', ['pages', 'about'])); ?>">About Us</a></li>
+                                <li>
+                                    <a href="#">Service <span><i class="fa-solid fa-angle-down"></i></span></a>
+                                    <ul class="sub-menu">
+                                        <li><a href="<?php echo e(route('second', ['services', 'service'])); ?>">Service</a></li>
+                                        <li><a href="<?php echo e(route('second', ['services', 'left'])); ?>">Service Left</a></li>
+                                        <li><a href="<?php echo e(route('second', ['services', 'right'])); ?>">Service Right</a></li>
+                                        <li><a href="<?php echo e(route('second', ['services', 'single'])); ?>">Service Single</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#">Pages <span><i class="fa-solid fa-angle-down"></i></span></a>
+                                    <ul class="sub-menu">
+                                        <li><a href="<?php echo e(route('second', ['pages', 'team'])); ?>">Team</a></li>
+                                        <li><a href="<?php echo e(route('second', ['pages', 'testimonial'])); ?>">Testimonial</a></li>
+                                        <li><a href="<?php echo e(route('second', ['pages', 'faq'])); ?>">Faq</a></li>
+                                        <li><a href="<?php echo e(route('second', ['pages', 'pricing'])); ?>">Pricing Plan</a></li>
+                                        <li><a href="<?php echo e(route('second', ['pages', 'contact'])); ?>">Contact Us</a></li>
+                                        <li><a href="<?php echo e(route('second', ['pages', '404'])); ?>">404</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#">Blog <span><i class="fa-solid fa-angle-down"></i></span></a>
+                                    <ul class="sub-menu">
+                                        <li><a href="<?php echo e(route('second', ['blogs', 'blog'])); ?>">Blog</a></li>
+                                        <li><a href="<?php echo e(route('second', ['blogs', 'left'])); ?>">Blog Left</a></li>
+                                        <li><a href="<?php echo e(route('second', ['blogs', 'right'])); ?>">Blog Right</a></li>
+                                        <li><a href="<?php echo e(route('second', ['blogs', 'single'])); ?>">Blog Single</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#">Project <span><i class="fa-solid fa-angle-down"></i></span></a>
+                                    <ul class="sub-menu">
+                                        <li><a href="<?php echo e(route('second', ['project', 'projects'])); ?>">Project</a></li>
+                                        <li><a href="<?php echo e(route('second', ['project', 'left'])); ?>">Project Left</a></li>
+                                        <li><a href="<?php echo e(route('second', ['project', 'right'])); ?>">Project Right</a></li>
+                                        <li><a href="<?php echo e(route('second', ['project', 'single'])); ?>">Project Single</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-lg col-md-6 col-6">
+                    <!-- ca-btn -->
+                    <div class="ca-btn-header d-none d-lg-block text-end">
+                        <a href="<?php echo e(route('second', ['pages', 'contact'])); ?>" class="ca-btn-primary theme-bg-1 text-white br-50">Get A Quote <span><i class="fa-solid fa-angle-right"></i></span></a>
+                    </div>
+                    <div class="ca-header-action-item d-lg-none text-end">
+                        <button type="button" class="ca-offcanvas-toogle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="16" viewBox="0 0 30 16">
+                                <rect x="10" width="20" height="2" fill="currentColor"></rect>
+                                <rect x="5" y="7" width="25" height="2" fill="currentColor"></rect>
+                                <rect x="10" y="14" width="20" height="2" fill="currentColor"></rect>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- Header Area end-->
+
+<!-- offcanvas start -->
+<div class="ca-offcanvas w-bg">
+    <div class="ca-offcanvas-wrapper">
+        <div class="ca-offcanvas-header d-flex justify-content-between align-items-center mb-40">
+            <div class="ca-offcanvas-logo">
+                <a href="#"><img src="/img/logo/ca-logo1.1.png" alt=""></a>
+            </div>
+            <div class="ca-offcanvas-close">
+                <button class="ca-offcanvas-close-toggle"><i class="fal fa-times"></i></button>
+            </div>
+        </div>
+        <div class="ca-offcanvas-menu-3 mb-40">
+            <nav>
+            </nav>
+        </div>
+        <div class="ca-offcanvas-contact mb-40">
+            <a href="#" class="ca-btn-primary theme-bg-1 text-white br-50">Get A Quote <span><i class="fa-solid fa-angle-right"></i></span></a>
+        </div>
+        <div class="ca-offcanvas-contact-info mb-40">
+            <h3 class="ca-offcanvas-sm-title">Contact Info</h3>
+            <div class="ca-sm-conatct-location ca-sm-conatct-location-3">
+                <!-- single item -->
+                <div class="ca-sm-single-item-4 mb-20">
+                    <div class="icon">
+                        <span>
+                            <i class="fa-solid fa-location-dot"></i>
+                        </span>
+                    </div>
+                    <div class="ca-sm-single-item-4-content">
+                        <p><a href="#">55 Street, 2nd block, 3rd Floor
+                                Melbourne, Australia</a></p>
+                    </div>
+                </div>
+
+                <!-- single item -->
+                <div class="ca-sm-single-item-4 mb-20">
+                    <div class="icon">
+                        <span>
+                            <i class="fa-solid fa-phone"></i>
+                        </span>
+                    </div>
+                    <div class="ca-sm-single-item-4-content">
+                        <p><a href="tel:+0221234568806">+022 (123) 456 88 06</a></p>
+                    </div>
+                </div>
+
+                <!-- single item -->
+                <div class="ca-sm-single-item-4 mb-20">
+                    <div class="icon">
+                        <span>
+                            <i class="fa-solid fa-envelope"></i>
+                        </span>
+                    </div>
+                    <div class="ca-sm-single-item-4-content">
+                        <p><a href="mailto:infocargon@gmail.com">infocargon@gmail.com</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ca-offcanvas-social mb-40">
+            <h3 class="ca-offcanvas-sm-title">Follow Us</h3>
+            <div class="ca-footer-social">
+                <ul>
+                    <li><a href="#"><i class="fa-brands fa-instagram"></i></a></li>
+                    <li><a href="#"><i class="fa-brands fa-facebook-f"></i></a></li>
+                    <li><a href="#"><i class="fa-brands fa-linkedin-in"></i></a></li>
+                    <li><a href="#"><i class="fa-brands fa-x-twitter"></i></a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="ca-offcanvas-overlay"></div>
+<!-- offcanvas end -->
+<?php /**PATH C:\xampp\htdocs\LaravelProject\Sales\WebSales\resources\views/layouts/partials/header/navbar3.blade.php ENDPATH**/ ?>

@@ -1,0 +1,60 @@
+@extends('layouts.base', ['title' => '404'])
+
+@section('header')
+    @include('layouts.partials.header.navbar')
+    @include('layouts.partials.header.mobile-nav')
+@endsection
+
+@section('content')
+    <main>
+        <!-- breadcrumb area start -->
+        <section class="ca-breadcrumb-area cream-bg-3 p-relative z-index-1 fix">
+            <div class="ca-breadcrumb-shape p-absolute bre-sh-1">
+                <img src="/img/shape/breadcrumn-shape.png" alt="" />
+            </div>
+            <div class="ca-breadcrumb-shape p-absolute bre-sh-2">
+                <img src="/img/shape/ca-line-shape.png" alt="" />
+            </div>
+            <div class="container">
+                <div class="ca-breadcrumb-content text-center">
+                    <h2 class="ca-breadcrumb-title fnw-600">404 Error</h2>
+                    <div class="it-breadcum-link">
+                        <a href="{{ route('any', 'index') }}">Home</a>
+                        <span><i class="fa-solid fa-angle-right"></i></span>
+                        <a class="active" href="{{ route('second', ['pages', '404']) }}">404 Error</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- breadcrumb area end -->
+
+        <!-- 404 start -->
+        <section class="ca-eror pt-100 pb-70">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8 text-center mx-auto mb-30">
+                        <div class="ca-eror-content">
+                            <div class="ca-eror-img mb-60">
+                                <img class="w-100" src="/img/blog/ca-eror.png" alt="" />
+                            </div>
+                            <div class="ca-eror-heading">
+                                <h2 class="ca-section-title theme-black-3 fnw-600">Sorry, Page Not Found!</h2>
+                                <p class="pt-16 pb-24">
+                                    Sorry, the page you are looking for doesn’t exist or has<br /> been moved. Here are some helpful links.
+                                </p>
+                                <div class="ca-eror-btn">
+                                    <a href="{{ route('any', 'index') }}" class="ca-btn-primary-3 theme-bg-3 text-white br-50">Take Me Home <span><i class="fa-solid fa-angle-right"></i></span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- 404 end -->
+    </main>
+
+    <button id="topBtn3"><i class="fa-solid fa-arrow-up"></i></button>
+
+    @include('layouts.partials.footer')
+@endsection
