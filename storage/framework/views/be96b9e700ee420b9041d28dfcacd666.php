@@ -34,7 +34,7 @@
                 </span>
             </div>
             <div class="px-4">
-                <span class="text-sm text-gray-500 dark:text-gray-400">PHP <?php echo e(PHP_VERSION); ?> — Laravel <?php echo e(app()->version()); ?></span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">PHP <?php echo e(PHP_VERSION); ?> - Laravel <?php echo e(app()->version()); ?></span>
             </div>
         </div>
     </div>

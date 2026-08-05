@@ -155,7 +155,7 @@
 
     <!-- PAGE 1: HERO SECTION -->
     <section class="hero-bg-gradient pt-[110px] pb-10 overflow-hidden relative">
-        <!-- Interactive Map for Desktop — Positioned as wide background element -->
+        <!-- Interactive Map for Desktop - Positioned as wide background element -->
         <div class="hidden lg:block absolute top-[80px] left-0 w-[90%] h-[280px] z-0 pointer-events-none">
             <java-interactive-map></java-interactive-map>
         </div>
@@ -493,7 +493,7 @@
                 <div class="relative">
                     <p class="text-xl text-gray-600 mb-2">Truk HINO Impian Anda Sudah Tersedia</p>
                     <h2 class="text-5xl md:text-7xl font-black text-[#0f3f26] mb-2" style="font-family: inherit;">READY UNIT</h2>
-                    <h2 class="text-4xl md:text-6xl font-bold text-gray-900 mb-8" style="font-family: inherit;">— Siap Kirim!</h2>
+                    <h2 class="text-4xl md:text-6xl font-bold text-gray-900 mb-8" style="font-family: inherit;">- Siap Kirim!</h2>
                     
                     <p class="text-xl text-gray-600 mb-12 leading-relaxed">
                         Unit terbatas dengan perputaran sangat cepat. Dapatkan informasi stok terbaru, promo unit, dan konsultasi langsung dengan sales resmi kami hari ini.
@@ -713,7 +713,7 @@
         
         <!-- Copyright line -->
         <div class="border-t border-green-200/50 py-6 text-center text-gray-500 text-sm bg-white/50 backdrop-blur-sm relative z-10">
-            &copy; <?php echo e(date('Y')); ?> Armindo Perkasa — Authorized HINO Dealer
+            &copy; <?php echo e(date('Y')); ?> Armindo Perkasa - Authorized HINO Dealer
         </div>
     </section>
 

@@ -235,7 +235,7 @@ const newIndex = `
                 <div class="order-2 lg:order-1 relative">
                     <p class="text-xl text-gray-600 mb-2">Truk HINO Impian Anda Sudah Tersedia</p>
                     <h2 class="text-5xl md:text-7xl font-black text-[#0f3f26] mb-2" style="font-family: inherit;">READY UNIT</h2>
-                    <h2 class="text-4xl md:text-6xl font-bold text-gray-900 mb-8" style="font-family: inherit;">— Siap Kirim!</h2>
+                    <h2 class="text-4xl md:text-6xl font-bold text-gray-900 mb-8" style="font-family: inherit;">- Siap Kirim!</h2>
                     
                     <p class="text-xl text-gray-600 mb-12 leading-relaxed">
                         Unit terbatas dengan perputaran sangat cepat. Dapatkan informasi stok terbaru, promo unit, dan konsultasi langsung dengan sales resmi kami hari ini.
@@ -459,7 +459,7 @@ const newIndex = `
         
         <!-- Copyright line -->
         <div class="border-t border-green-200/50 py-6 text-center text-gray-500 text-sm bg-white/50 backdrop-blur-sm relative z-10">
-            &copy; {{ date('Y') }} Armindo Perkasa — Authorized HINO Dealer
+            &copy; {{ date('Y') }} Armindo Perkasa - Authorized HINO Dealer
         </div>
     </section>
 

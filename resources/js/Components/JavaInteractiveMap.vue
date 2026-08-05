@@ -1,14 +1,14 @@
 <template>
     <div class="java-map-wrapper">
         
-        <!-- Peta Dasar (map-4.png) — Pure Image -->
+        <!-- Peta Dasar (map-4.png) - Pure Image -->
         <div class="java-map-bg"></div>
         
     </div>
 </template>
 
 <script setup>
-// No interactive elements needed — pure map image only
+// No interactive elements needed - pure map image only
 </script>
 
 <style scoped>
@@ -25,7 +25,7 @@
     overflow: visible;
 }
 
-/* Background Peta Pulau Jawa (map-4.png) — Pure Image, fades on right */
+/* Background Peta Pulau Jawa (map-4.png) - Pure Image, fades on right */
 .java-map-bg {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;

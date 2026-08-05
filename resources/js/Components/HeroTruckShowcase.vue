@@ -7,7 +7,7 @@
             @mouseenter="hovering = true"
             @mouseleave="hovering = false"
         >
-            <!-- Truck Image — BESAR dan meluap ke kanan -->
+            <!-- Truck Image - BESAR dan meluap ke kanan -->
             <img 
                 :src="currentTruckImage" 
                 alt="Hino 500 Dump Truck" 

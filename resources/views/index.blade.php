@@ -1,6 +1,6 @@
 @extends('layouts.marketing')
 
-@section('title', 'Armindo Perkasa — Dealer Resmi HINO')
+@section('title', 'Armindo Perkasa - Dealer Resmi HINO')
 
 @section('content')
 <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -8,7 +8,7 @@
 <div x-data="{ menuOpen: false }" @keydown.escape.window="menuOpen = false">
     <header class="site-header">
         <nav class="site-nav" aria-label="Navigasi utama">
-            <a href="#home" class="brand-hino" aria-label="Armindo Perkasa — Beranda">
+            <a href="#home" class="brand-hino" aria-label="Armindo Perkasa - Beranda">
                 <img src="{{ asset('img/logo/logohinopth.png') }}" alt="HINO">
             </a>
 
@@ -120,7 +120,7 @@
             <div class="section-container ready-grid">
                 <div class="ready-copy">
                     <p class="section-kicker">Truk HINO impian Anda sudah tersedia</p>
-                    <h2 id="ready-title"><span>Ready Unit</span><br>— Siap Kirim!</h2>
+                    <h2 id="ready-title"><span>Ready Unit</span><br>- Siap Kirim!</h2>
                     <p>Unit terbatas dengan perputaran cepat. Dapatkan informasi stok terbaru, promo unit, dan konsultasi langsung dengan sales resmi kami hari ini.</p>
                     <small>Ketersediaan unit dapat berubah sewaktu-waktu.</small>
                 </div>
@@ -227,7 +227,7 @@
     </main>
 
     <footer class="site-footer">
-        <p>&copy; {{ date('Y') }} Armindo Perkasa — Authorized HINO Dealer</p>
+        <p>&copy; {{ date('Y') }} Armindo Perkasa - Authorized HINO Dealer</p>
     </footer>
 </div>
 @endsection

@@ -1,4 +1,4 @@
-# Design QA — Armindo Perkasa Landing Page
+# Design QA - Armindo Perkasa Landing Page
 
 ## Source of truth
 
