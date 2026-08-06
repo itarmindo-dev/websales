@@ -12,12 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sales_profiles', function (Blueprint $table) {
-            if (!Schema::hasColumn('sales_profiles', 'tagline')) {
-                $table->string('tagline')->nullable();
-            }
-            if (!Schema::hasColumn('sales_profiles', 'instagram')) {
-                $table->string('instagram')->nullable();
-            }
+            $table->string('tagline')->nullable();
         });
     }
 
@@ -27,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sales_profiles', function (Blueprint $table) {
-            $table->dropColumn(['tagline', 'instagram']);
+            $table->dropColumn('tagline');
         });
     }
 };

@@ -18,14 +18,13 @@ return new class extends Migration
             $table->string('photo')->nullable();
             $table->string('phone')->nullable();
             $table->string('whatsapp')->nullable();
-            $table->string('facebook')->nullable();
             $table->string('slogan')->nullable();
             $table->text('bio')->nullable();
             $table->string('specialties')->nullable();
             $table->string('facebook_link')->nullable();
             $table->string('instagram_link')->nullable();
             $table->string('whatsapp_number')->nullable();
-            $table->json('documentation_photos')->nullable(); // array of photo paths
+            $table->json('documentation_photos')->nullable();
             $table->timestamps();
         });
     }

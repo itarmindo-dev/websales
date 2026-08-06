@@ -3,115 +3,148 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\SalesProfileRequest;
 use App\Models\SalesProfile;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
+use Throwable;
 
 class SalesProfileController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        $sales = SalesProfile::latest()->get();
-        return view('admin.sales.index', compact('sales'));
+        return view('admin.sales.index', [
+            'sales' => SalesProfile::query()->latest()->paginate(12),
+        ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('admin.sales.create');
     }
 
-    public function store(Request $request)
+    public function store(SalesProfileRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:255',
-            'whatsapp' => 'nullable|string|max:255',
-            'whatsapp_number' => 'nullable|string|max:255',
-            'facebook' => 'nullable|string|max:255',
-            'facebook_link' => 'nullable|string|max:255',
-            'instagram' => 'nullable|string|max:255',
-            'instagram_link' => 'nullable|string|max:255',
-            'bio' => 'nullable|string|max:1000',
-            'tagline' => 'nullable|string|max:255',
-            'slogan' => 'nullable|string|max:255',
-            'specialties' => 'nullable|string|max:500',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'documentation_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
+        $validated = $request->validated();
+        $data = $this->profileData($validated);
+        $data['slug'] = $this->uniqueSlug($data['name']);
+        $uploadedPaths = [];
 
-        $data = collect($validated)->except(['photo', 'documentation_photos'])->toArray();
-        $data['slug'] = Str::slug($validated['name']) . '-' . uniqid();
-
-        if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('sales_photos', 'public');
-        }
-
-        if ($request->hasFile('documentation_photos')) {
-            $docPhotos = [];
-            foreach ($request->file('documentation_photos') as $file) {
-                if ($file->isValid()) {
-                    $docPhotos[] = $file->store('sales_docs', 'public');
-                }
+        try {
+            if ($request->hasFile('photo')) {
+                $data['photo'] = $request->file('photo')->store('sales_photos', 'public');
+                $uploadedPaths[] = $data['photo'];
             }
-            $data['documentation_photos'] = $docPhotos;
+
+            $data['documentation_photos'] = $this->storeDocumentationPhotos($request, $uploadedPaths);
+            SalesProfile::query()->create($data);
+        } catch (Throwable $exception) {
+            Storage::disk('public')->delete($uploadedPaths);
+
+            throw $exception;
         }
 
-        SalesProfile::create($data);
-
-        return redirect()->route('admin.sales.index')->with('success', 'Halaman Sales berhasil di-generate!');
+        return to_route('admin.sales.index')->with('success', 'Profil sales berhasil dibuat.');
     }
 
-    public function edit(SalesProfile $sale)
+    public function edit(SalesProfile $sale): View
     {
         return view('admin.sales.edit', compact('sale'));
     }
 
-    public function update(Request $request, SalesProfile $sale)
+    public function update(SalesProfileRequest $request, SalesProfile $sale): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:255',
-            'whatsapp' => 'nullable|string|max:255',
-            'whatsapp_number' => 'nullable|string|max:255',
-            'facebook' => 'nullable|string|max:255',
-            'facebook_link' => 'nullable|string|max:255',
-            'instagram' => 'nullable|string|max:255',
-            'instagram_link' => 'nullable|string|max:255',
-            'bio' => 'nullable|string|max:1000',
-            'tagline' => 'nullable|string|max:255',
-            'slogan' => 'nullable|string|max:255',
-            'specialties' => 'nullable|string|max:500',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'documentation_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
+        $validated = $request->validated();
+        $data = $this->profileData($validated);
+        $existingDocumentation = $sale->documentation_photos ?? [];
+        $requestedRemoval = array_intersect(
+            $existingDocumentation,
+            $validated['remove_documentation_photos'] ?? [],
+        );
+        $remainingDocumentation = array_values(array_diff($existingDocumentation, $requestedRemoval));
+        $uploadedPaths = [];
+        $oldPhoto = null;
 
-        $data = collect($validated)->except(['photo', 'documentation_photos'])->toArray();
-        
-        if ($request->hasFile('photo')) {
-            if ($sale->photo) Storage::disk('public')->delete($sale->photo);
-            $data['photo'] = $request->file('photo')->store('sales_photos', 'public');
-        }
-
-        if ($request->hasFile('documentation_photos')) {
-            $docPhotos = is_array($sale->documentation_photos) ? $sale->documentation_photos : [];
-            foreach ($request->file('documentation_photos') as $file) {
-                if ($file->isValid()) {
-                    $docPhotos[] = $file->store('sales_docs', 'public');
-                }
+        try {
+            if ($request->hasFile('photo')) {
+                $data['photo'] = $request->file('photo')->store('sales_photos', 'public');
+                $uploadedPaths[] = $data['photo'];
+                $oldPhoto = $sale->photo;
+            } elseif ($request->boolean('remove_photo') && $sale->photo) {
+                $data['photo'] = null;
+                $oldPhoto = $sale->photo;
             }
-            $data['documentation_photos'] = $docPhotos;
+
+            $newDocumentation = $this->storeDocumentationPhotos($request, $uploadedPaths);
+            $data['documentation_photos'] = [...$remainingDocumentation, ...$newDocumentation];
+            $sale->update($data);
+        } catch (Throwable $exception) {
+            Storage::disk('public')->delete($uploadedPaths);
+
+            throw $exception;
         }
 
-        $sale->update($data);
-        return redirect()->route('admin.sales.index')->with('success', 'Profile Sales diupdate.');
+        Storage::disk('public')->delete(array_filter([$oldPhoto, ...$requestedRemoval]));
+
+        return to_route('admin.sales.index')->with('success', 'Profil sales berhasil diperbarui.');
     }
 
-    public function destroy(SalesProfile $sale)
+    public function destroy(SalesProfile $sale): RedirectResponse
     {
-        if ($sale->photo) Storage::disk('public')->delete($sale->photo);
-        // also delete docs if needed
+        $storedFiles = array_filter([
+            $sale->photo,
+            ...($sale->documentation_photos ?? []),
+        ]);
+
         $sale->delete();
-        return redirect()->route('admin.sales.index')->with('success', 'Profile dihapus.');
+        Storage::disk('public')->delete($storedFiles);
+
+        return to_route('admin.sales.index')->with('success', 'Profil sales berhasil dihapus.');
+    }
+
+    private function profileData(array $validated): array
+    {
+        $data = Arr::except($validated, [
+            'photo',
+            'documentation_photos',
+            'remove_photo',
+            'remove_documentation_photos',
+        ]);
+
+        $data['whatsapp'] = $data['whatsapp_number'] ?? null;
+        $data['facebook'] = $data['facebook_link'] ?? null;
+        $data['instagram'] = $data['instagram_link'] ?? null;
+
+        return $data;
+    }
+
+    private function storeDocumentationPhotos(SalesProfileRequest $request, array &$uploadedPaths): array
+    {
+        $paths = [];
+
+        foreach ($request->file('documentation_photos', []) as $photo) {
+            $path = $photo->store('sales_docs', 'public');
+            $paths[] = $path;
+            $uploadedPaths[] = $path;
+        }
+
+        return $paths;
+    }
+
+    private function uniqueSlug(string $name): string
+    {
+        $baseSlug = Str::slug($name) ?: 'sales';
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while (SalesProfile::query()->where('slug', $slug)->exists()) {
+            $slug = "{$baseSlug}-{$suffix}";
+            $suffix++;
+        }
+
+        return $slug;
     }
 }

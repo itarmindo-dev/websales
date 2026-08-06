@@ -9,7 +9,7 @@
       </div>
     </header>
 
-    <ol class="step-indicator" aria-label="Tahapan kalkulator">
+    <ol v-if="!result" class="step-indicator" aria-label="Tahapan kalkulator">
       <li v-for="item in 3" :key="item" :class="{ active: item === step, complete: item < step }">
         <span>{{ item < step ? '✓' : item }}</span>
         <small>{{ stepLabels[item - 1] }}</small>
@@ -22,21 +22,37 @@
         <p class="step-description">Masukkan pola penggunaan kendaraan dalam satu tahun.</p>
 
         <div class="field-group">
-          <label for="daily-km">Rata-rata jarak per hari</label>
+          <label for="daily-km">AVG KM harian</label>
           <div class="input-suffix">
-            <input id="daily-km" v-model.number="form.dailyKm" type="number" min="1" max="1500" inputmode="numeric" placeholder="Contoh: 100" :aria-invalid="Boolean(errors.dailyKm)" :aria-describedby="errors.dailyKm ? 'daily-km-error' : undefined">
+            <input
+              id="daily-km"
+              v-model.number="form.dailyKm"
+              type="number"
+              min="1"
+              inputmode="numeric"
+              placeholder="Contoh: 100"
+              :aria-invalid="Boolean(errors.dailyKm)"
+            >
             <span>km</span>
           </div>
-          <small v-if="errors.dailyKm" id="daily-km-error" class="field-error">{{ errors.dailyKm }}</small>
+          <small v-if="errors.dailyKm" class="field-error">{{ errors.dailyKm }}</small>
         </div>
 
         <div class="field-group">
           <label for="operating-days">Hari operasional per tahun</label>
           <div class="input-suffix">
-            <input id="operating-days" v-model.number="form.operatingDays" type="number" min="1" max="366" inputmode="numeric" placeholder="Contoh: 300" :aria-invalid="Boolean(errors.operatingDays)" :aria-describedby="errors.operatingDays ? 'operating-days-error' : undefined">
+            <input
+              id="operating-days"
+              v-model.number="form.operatingDays"
+              type="number"
+              min="1"
+              inputmode="numeric"
+              placeholder="Contoh: 300"
+              :aria-invalid="Boolean(errors.operatingDays)"
+            >
             <span>hari</span>
           </div>
-          <small v-if="errors.operatingDays" id="operating-days-error" class="field-error">{{ errors.operatingDays }}</small>
+          <small v-if="errors.operatingDays" class="field-error">{{ errors.operatingDays }}</small>
         </div>
 
         <div class="field-group">
@@ -48,99 +64,126 @@
       </fieldset>
 
       <fieldset v-else-if="step === 2">
-        <legend>Pilih unit HINO</legend>
-        <p class="step-description">Pilihan unit menentukan estimasi harga dan konsumsi bahan bakar.</p>
+        <legend>Spesifikasi unit HINO</legend>
+        <p class="step-description">Pilih tipe, model, dan kondisi jalan sesuai penggunaan armada.</p>
 
         <div class="field-group">
-          <label for="truck-model">Model kendaraan</label>
-          <select id="truck-model" v-model="form.modelKey" @change="applyModelPreset">
-            <option v-for="model in models" :key="model.key" :value="model.key">{{ model.name }}</option>
+          <label for="truck-series">Tipe unit</label>
+          <select id="truck-series" v-model="form.truckSeries" :aria-invalid="Boolean(errors.truckSeries)">
+            <option value="">Pilih tipe</option>
+            <option value="115">Dutro 115 Series</option>
+            <option value="136">Dutro 136 Series</option>
+          </select>
+          <small v-if="errors.truckSeries" class="field-error">{{ errors.truckSeries }}</small>
+        </div>
+
+        <div class="field-group">
+          <label for="truck-model">Kategori model</label>
+          <select id="truck-model" v-model="form.modelKey" :disabled="!form.truckSeries" :aria-invalid="Boolean(errors.modelKey)">
+            <option value="">{{ form.truckSeries ? 'Pilih kategori' : 'Pilih tipe terlebih dahulu' }}</option>
+            <option v-for="model in availableModels" :key="model" :value="model">{{ model }}</option>
+          </select>
+          <small v-if="errors.modelKey" class="field-error">{{ errors.modelKey }}</small>
+        </div>
+
+        <div class="field-group">
+          <label for="road-condition">Kondisi jalan dominan</label>
+          <select id="road-condition" v-model="form.roadCondition" :disabled="!form.modelKey">
+            <option v-for="condition in roadConditions" :key="condition.value" :value="condition.value">
+              {{ condition.label }}
+            </option>
           </select>
         </div>
 
-        <div class="model-summary">
-          <i class="fa-solid fa-truck" aria-hidden="true"></i>
+        <div v-if="fuelEfficiency" class="model-summary">
+          <i class="fa-solid fa-gas-pump" aria-hidden="true"></i>
           <div>
-            <strong>{{ selectedModel.name }}</strong>
-            <span>Estimasi harga unit {{ formatCurrency(selectedModel.price) }}</span>
+            <strong>{{ form.modelKey }}</strong>
+            <span>Konsumsi BBM acuan {{ fuelEfficiency }} km/liter</span>
           </div>
-        </div>
-
-        <div class="field-group">
-          <label for="route-condition">Kondisi rute dominan</label>
-          <select id="route-condition" v-model="form.routeFactor">
-            <option :value="1.08">Jalan antarkota / relatif lancar</option>
-            <option :value="1">Campuran kota dan antarkota</option>
-            <option :value="0.88">Kota padat / sering berhenti</option>
-            <option :value="0.78">Medan berat / proyek</option>
-          </select>
-        </div>
-
-        <div class="field-group">
-          <label for="fuel-efficiency">Estimasi konsumsi bahan bakar</label>
-          <div class="input-suffix">
-            <input id="fuel-efficiency" v-model.number="form.fuelEfficiency" type="number" min="1" max="20" step="0.1" inputmode="decimal" :aria-invalid="Boolean(errors.fuelEfficiency)" :aria-describedby="errors.fuelEfficiency ? 'fuel-efficiency-error' : 'fuel-efficiency-help'">
-            <span>km/l</span>
-          </div>
-          <small id="fuel-efficiency-help" class="field-help">Dapat disesuaikan menurut pengalaman armada Anda.</small>
-          <small v-if="errors.fuelEfficiency" id="fuel-efficiency-error" class="field-error">{{ errors.fuelEfficiency }}</small>
         </div>
       </fieldset>
 
       <fieldset v-else>
-        <legend>Asumsi biaya</legend>
-        <p class="step-description">Sesuaikan angka agar simulasi mendekati kondisi bisnis Anda.</p>
+        <legend>Data finansial dan kontak</legend>
+        <p class="step-description">Lengkapi komponen biaya dan kontak yang akan dicantumkan dalam laporan.</p>
 
         <div class="cost-grid">
           <div class="field-group">
-            <label for="unit-price">Harga unit</label>
+            <label for="unit-price">Harga unit + pajak</label>
             <div class="input-prefix">
               <span>Rp</span>
-              <input id="unit-price" v-model.number="form.unitPrice" type="number" min="1" step="1000000" inputmode="numeric" :aria-invalid="Boolean(errors.unitPrice)">
+              <input id="unit-price" v-model.number="form.unitPrice" type="number" min="1" inputmode="numeric" placeholder="450000000" :aria-invalid="Boolean(errors.unitPrice)">
+            </div>
+            <small v-if="errors.unitPrice" class="field-error">{{ errors.unitPrice }}</small>
+          </div>
+
+          <div class="field-group">
+            <label for="body-price">Harga karoseri</label>
+            <div class="input-prefix">
+              <span>Rp</span>
+              <input id="body-price" v-model.number="form.bodyPrice" type="number" min="0" inputmode="numeric" placeholder="90000000">
             </div>
           </div>
 
           <div class="field-group">
-            <label for="body-price">Karoseri / bak</label>
-            <div class="input-prefix">
-              <span>Rp</span>
-              <input id="body-price" v-model.number="form.bodyPrice" type="number" min="0" step="1000000" inputmode="numeric" :aria-invalid="Boolean(errors.bodyPrice)">
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label for="diesel-price">Harga solar per liter</label>
-            <div class="input-prefix">
-              <span>Rp</span>
-              <input id="diesel-price" v-model.number="form.dieselPrice" type="number" min="1" step="100" inputmode="numeric" :aria-invalid="Boolean(errors.dieselPrice)">
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label for="annual-service">Servis tahun pertama</label>
-            <div class="input-prefix">
-              <span>Rp</span>
-              <input id="annual-service" v-model.number="form.annualService" type="number" min="0" step="100000" inputmode="numeric" :aria-invalid="Boolean(errors.annualService)">
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label for="interest-rate">Bunga pembiayaan flat</label>
+            <label for="interest-rate">Bunga flat</label>
             <div class="input-suffix">
-              <input id="interest-rate" v-model.number="form.interestRate" type="number" min="0" max="30" step="0.1" inputmode="decimal" :aria-invalid="Boolean(errors.interestRate)">
-              <span>%/th</span>
+              <input id="interest-rate" v-model.number="form.interestRate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="7.5">
+              <span>%</span>
             </div>
           </div>
 
           <div class="field-group">
-            <label for="financing-years">Tenor pembiayaan</label>
+            <label for="financing-years">Durasi kredit/bunga</label>
             <select id="financing-years" v-model.number="form.financingYears">
-              <option v-for="year in 5" :key="year" :value="year">{{ year }} tahun</option>
+              <option v-for="year in financingOptions" :key="year" :value="year">
+                {{ year === 0 ? 'Cash (0 tahun)' : `${year} tahun` }}
+              </option>
             </select>
+          </div>
+
+          <div class="field-group">
+            <label for="diesel-price">Harga solar</label>
+            <div class="input-prefix">
+              <span>Rp</span>
+              <input id="diesel-price" v-model.number="form.dieselPrice" type="number" min="1" inputmode="numeric" :aria-invalid="Boolean(errors.dieselPrice)">
+            </div>
+            <small v-if="errors.dieselPrice" class="field-error">{{ errors.dieselPrice }}</small>
+          </div>
+
+          <div class="field-group">
+            <label for="tire-price">Harga satu set ban</label>
+            <div class="input-prefix">
+              <span>Rp</span>
+              <input id="tire-price" v-model.number="form.tireSetPrice" type="number" min="1" inputmode="numeric" placeholder="14000000" :aria-invalid="Boolean(errors.tireSetPrice)">
+            </div>
+            <small v-if="errors.tireSetPrice" class="field-error">{{ errors.tireSetPrice }}</small>
+          </div>
+
+          <div class="field-group">
+            <label for="tire-life">Umur ban</label>
+            <div class="input-suffix">
+              <input id="tire-life" v-model.number="form.tireLifeKm" type="number" min="1" inputmode="numeric" placeholder="40000" :aria-invalid="Boolean(errors.tireLifeKm)">
+              <span>km</span>
+            </div>
+            <small v-if="errors.tireLifeKm" class="field-error">{{ errors.tireLifeKm }}</small>
           </div>
         </div>
 
-        <p v-if="errors.costs" class="form-error" role="alert">{{ errors.costs }}</p>
+        <div class="tco-contact-grid">
+          <div class="field-group">
+            <label for="customer-name">Nama <em>wajib</em></label>
+            <input id="customer-name" v-model.trim="form.name" type="text" maxlength="255" autocomplete="name" placeholder="Masukkan nama" :aria-invalid="Boolean(errors.name)">
+            <small v-if="errors.name" class="field-error">{{ errors.name }}</small>
+          </div>
+
+          <div class="field-group">
+            <label for="whatsapp-number">Nomor WhatsApp <em>wajib</em></label>
+            <input id="whatsapp-number" v-model.trim="form.whatsapp" type="tel" maxlength="30" inputmode="tel" autocomplete="tel" placeholder="0812xxxxxx" :aria-invalid="Boolean(errors.whatsapp)">
+            <small v-if="errors.whatsapp" class="field-error">{{ errors.whatsapp }}</small>
+          </div>
+        </div>
       </fieldset>
 
       <div class="form-actions">
@@ -148,118 +191,162 @@
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Kembali
         </button>
         <button class="button-submit" type="submit">
-          {{ step === 3 ? 'Hitung Estimasi' : 'Selanjutnya' }}
+          {{ step === 3 ? 'Hitung TCO Final' : 'Selanjutnya' }}
           <i class="fa-solid" :class="step === 3 ? 'fa-calculator' : 'fa-arrow-right'" aria-hidden="true"></i>
         </button>
       </div>
     </form>
 
     <div v-else class="result-panel" aria-live="polite">
+      <div class="result-success-icon">
+        <i class="fa-solid fa-check" aria-hidden="true"></i>
+      </div>
+      <h3>Terima kasih!</h3>
+      <p class="result-greeting">Kalkulasi berhasil, <strong>{{ form.name }}</strong>.</p>
+      <p class="result-follow-up">Sales kami akan menghubungi Anda.</p>
+
       <div class="result-heading">
-        <span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span>
-        <div>
-          <small>Estimasi total biaya kepemilikan</small>
-          <strong>{{ formatCurrency(result.totalTco) }}</strong>
-          <p>{{ form.ownershipYears }} tahun · {{ formatNumber(result.totalKm) }} km</p>
-        </div>
+        <small>Estimasi biaya kepemilikan per km</small>
+        <strong>{{ formatCurrency(result.costPerKm) }}</strong>
       </div>
 
-      <dl class="result-summary">
-        <div><dt>Biaya per kilometer</dt><dd>{{ formatCurrency(result.costPerKm) }}</dd></div>
-        <div><dt>Rata-rata per bulan</dt><dd>{{ formatCurrency(result.costPerMonth) }}</dd></div>
-      </dl>
+      <div class="email-status" :class="`is-${emailStatus.state}`" role="status">
+        <i :class="emailStatusIcon" aria-hidden="true"></i>
+        <span>{{ emailStatus.message }}</span>
+      </div>
 
-      <dl class="cost-breakdown">
-        <div><dt>Investasi unit + pembiayaan</dt><dd>{{ formatCurrency(result.acquisitionCost) }}</dd></div>
-        <div><dt>Bahan bakar</dt><dd>{{ formatCurrency(result.fuelCost) }}</dd></div>
-        <div><dt>Servis dan ban</dt><dd>{{ formatCurrency(result.maintenanceCost) }}</dd></div>
-        <div class="deduction"><dt>Estimasi nilai jual kembali</dt><dd>− {{ formatCurrency(result.resaleValue) }}</dd></div>
-      </dl>
-
-      <p class="result-note">Simulasi ini merupakan estimasi perencanaan, bukan penawaran harga. Hasil aktual dipengaruhi spesifikasi unit, muatan, rute, harga bahan bakar, dan skema pembiayaan.</p>
+      <p class="result-note">
+        Angka di atas adalah ringkasan umum. Rincian depresiasi, beban bunga, biaya bahan bakar,
+        ban, dan servis tahunan dibuat sebagai laporan PDF untuk tim sales.
+      </p>
 
       <div class="result-actions">
-        <button class="button-secondary" type="button" @click="editCalculation">
-          <i class="fa-solid fa-pen" aria-hidden="true"></i> Ubah Data
+        <button class="button-secondary" type="button" @click="resetCalculation">
+          Hitung simulasi baru
         </button>
-        <a class="button-submit" :href="whatsAppUrl" target="_blank" rel="noopener noreferrer">
-          <i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Konsultasikan Hasil
-        </a>
+        <button v-if="emailStatus.state === 'error'" class="button-submit" type="button" @click="sendReport">
+          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Kirim ulang laporan
+        </button>
       </div>
     </div>
 
     <footer class="calculator-footer">
-      <i class="fa-solid fa-lock" aria-hidden="true"></i>
-      Data hanya diproses di perangkat ini dan tidak disimpan.
+      <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
+      Data digunakan untuk membuat laporan PDF dan tidak disimpan dalam database.
     </footer>
   </section>
 </template>
 
 <script>
-const models = [
-  { key: 'dutro-136-hdl', name: 'HINO 300 Dutro 136 HDL', price: 421000000, fuelEfficiency: 7.8 },
-  { key: 'ranger-fg-260', name: 'HINO 500 Ranger FG 260', price: 875000000, fuelEfficiency: 5.4 },
-  { key: 'ranger-fl-280', name: 'HINO 500 Ranger FL 280', price: 1125000000, fuelEfficiency: 4.7 },
-  { key: 'profia-700', name: 'HINO 700 Profia', price: 1750000000, fuelEfficiency: 3.2 },
-]
+const fuelConsumptionData = Object.freeze({
+  115: {
+    'Dutro 115 HD STD': { 1: 4.09, 2: 6.99, 3: 5.95, 4: 5.53 },
+    'Dutro 115 LD STD': { 1: 5.03, 2: 5.09, 3: 6.15, 4: 5.77 },
+    'Dutro 115 SD STD': { 1: 6.05, 2: 12.74, 3: 9.56, 4: 8.11 },
+    'Dutro 115 SDL STD': { 1: 4.74, 2: 8.40, 3: 6.83, 4: 5.71 },
+    'Dutro 115 SDR STD': { 1: 6.34, 2: 10.25, 3: 9.10, 4: 7.96 },
+  },
+  136: {
+    'Dutro 136 HD 64': { 1: 3.55, 2: 9.27, 3: 6.40, 4: 4.36 },
+    'Dutro 136 HDL 64': { 1: 8.81, 2: 10.77, 3: 3.67, 4: 7.44 },
+    'Dutro 136 HDX': { 1: 4.55, 2: 7.01, 3: 7.12, 4: 6.15 },
+    'Dutro 136 HDX PTO': { 1: 4.55, 2: 7.01, 3: 7.12, 4: 6.15 },
+    'Dutro 136 MDL': { 1: 5.01, 2: 8.91, 3: 8.10, 4: 7.27 },
+  },
+})
+
+const roadConditions = Object.freeze([
+  { value: '1', label: 'Liku-liku / Perbukitan' },
+  { value: '2', label: 'Dalam Kota / Dataran Rendah' },
+  { value: '3', label: 'Pegunungan / Medan Terjal' },
+  { value: '4', label: 'All Around (Kombinasi)' },
+])
+
+const firstYearServiceCost = 7271111
+
+function initialForm() {
+  return {
+    dailyKm: '',
+    operatingDays: '',
+    ownershipYears: 5,
+    truckSeries: '',
+    modelKey: '',
+    roadCondition: '4',
+    unitPrice: '',
+    bodyPrice: '',
+    interestRate: '',
+    financingYears: 0,
+    dieselPrice: 6800,
+    tireSetPrice: '',
+    tireLifeKm: '',
+    name: '',
+    whatsapp: '',
+  }
+}
 
 export default {
+  props: {
+    submitUrl: {
+      type: String,
+      default: '/tco/submit',
+    },
+  },
+
   data() {
     return {
       step: 1,
-      stepLabels: ['Operasional', 'Unit', 'Biaya'],
-      models,
+      stepLabels: ['Operasional', 'Unit', 'Biaya & kontak'],
+      roadConditions,
       errors: {},
       result: null,
-      form: {
-        dailyKm: 100,
-        operatingDays: 300,
-        ownershipYears: 5,
-        modelKey: models[0].key,
-        routeFactor: 1,
-        fuelEfficiency: models[0].fuelEfficiency,
-        unitPrice: models[0].price,
-        bodyPrice: 85000000,
-        dieselPrice: 6800,
-        annualService: 7271111,
-        interestRate: 6.5,
-        financingYears: 4,
+      emailStatus: {
+        state: 'idle',
+        message: '',
       },
+      form: initialForm(),
     }
   },
 
   computed: {
-    selectedModel() {
-      return this.models.find((model) => model.key === this.form.modelKey) ?? this.models[0]
+    availableModels() {
+      return Object.keys(fuelConsumptionData[this.form.truckSeries] ?? {})
     },
 
-    whatsAppUrl() {
-      if (!this.result) return '#'
+    financingOptions() {
+      return Array.from({ length: Number(this.form.ownershipYears) + 1 }, (_, index) => index)
+    },
 
-      const message = [
-        'Halo Armindo Perkasa, saya ingin konsultasi hasil estimasi TCO.',
-        `Unit: ${this.selectedModel.name}`,
-        `Periode: ${this.form.ownershipYears} tahun`,
-        `Jarak: ${this.formatNumber(this.result.totalKm)} km`,
-        `Estimasi TCO: ${this.formatCurrency(this.result.totalTco)}`,
-      ].join('\n')
+    fuelEfficiency() {
+      return fuelConsumptionData[this.form.truckSeries]?.[this.form.modelKey]?.[this.form.roadCondition] ?? null
+    },
 
-      return `https://wa.me/6281280061238?text=${encodeURIComponent(message)}`
+    selectedRoadLabel() {
+      return roadConditions.find((condition) => condition.value === this.form.roadCondition)?.label ?? '-'
+    },
+
+    emailStatusIcon() {
+      if (this.emailStatus.state === 'sending') return 'fa-solid fa-spinner fa-spin'
+      if (this.emailStatus.state === 'success') return 'fa-solid fa-circle-check'
+      return 'fa-solid fa-circle-exclamation'
     },
   },
 
   watch: {
-    'form.routeFactor'() {
-      this.form.fuelEfficiency = Number((this.selectedModel.fuelEfficiency * this.form.routeFactor).toFixed(1))
+    'form.truckSeries'() {
+      this.form.modelKey = ''
+      this.form.roadCondition = '4'
+    },
+
+    'form.modelKey'(modelKey) {
+      if (modelKey) this.form.roadCondition = '4'
+    },
+
+    'form.ownershipYears'(years) {
+      if (this.form.financingYears > years) this.form.financingYears = 0
     },
   },
 
   methods: {
-    applyModelPreset() {
-      this.form.unitPrice = this.selectedModel.price
-      this.form.fuelEfficiency = Number((this.selectedModel.fuelEfficiency * this.form.routeFactor).toFixed(1))
-    },
-
     nextStep() {
       if (!this.validateStep()) return
 
@@ -268,7 +355,8 @@ export default {
         return
       }
 
-      this.calculate()
+      this.result = this.calculate()
+      this.sendReport()
     },
 
     previousStep() {
@@ -280,24 +368,22 @@ export default {
       const errors = {}
 
       if (this.step === 1) {
-        if (!this.isWithin(this.form.dailyKm, 1, 1500)) errors.dailyKm = 'Masukkan jarak antara 1 dan 1.500 km.'
-        if (!this.isWithin(this.form.operatingDays, 1, 366)) errors.operatingDays = 'Masukkan jumlah hari antara 1 dan 366.'
+        if (!this.isPositive(this.form.dailyKm)) errors.dailyKm = 'AVG KM harian wajib diisi.'
+        if (!this.isPositive(this.form.operatingDays)) errors.operatingDays = 'Hari operasional wajib diisi.'
       }
 
-      if (this.step === 2 && !this.isWithin(this.form.fuelEfficiency, 1, 20)) {
-        errors.fuelEfficiency = 'Masukkan konsumsi antara 1 dan 20 km per liter.'
+      if (this.step === 2) {
+        if (!this.form.truckSeries) errors.truckSeries = 'Pilih tipe unit HINO.'
+        if (!this.form.modelKey) errors.modelKey = 'Pilih kategori model HINO.'
       }
 
       if (this.step === 3) {
-        const costsAreValid = [
-          this.form.unitPrice > 0,
-          this.form.bodyPrice >= 0,
-          this.form.dieselPrice > 0,
-          this.form.annualService >= 0,
-          this.isWithin(this.form.interestRate, 0, 30),
-        ].every(Boolean)
-
-        if (!costsAreValid) errors.costs = 'Periksa kembali asumsi biaya. Nilai tidak boleh kosong atau negatif.'
+        if (!this.isPositive(this.form.unitPrice)) errors.unitPrice = 'Harga unit wajib diisi.'
+        if (!this.isPositive(this.form.dieselPrice)) errors.dieselPrice = 'Harga solar wajib diisi.'
+        if (!this.isPositive(this.form.tireSetPrice)) errors.tireSetPrice = 'Harga satu set ban wajib diisi.'
+        if (!this.isPositive(this.form.tireLifeKm)) errors.tireLifeKm = 'Umur ban wajib diisi.'
+        if (!this.form.name) errors.name = 'Nama wajib diisi.'
+        if (!this.form.whatsapp) errors.whatsapp = 'Nomor WhatsApp wajib diisi.'
       }
 
       this.errors = errors
@@ -305,42 +391,105 @@ export default {
     },
 
     calculate() {
-      const totalKm = this.form.dailyKm * this.form.operatingDays * this.form.ownershipYears
-      const financedValue = this.form.unitPrice + this.form.bodyPrice
-      const financingYears = Math.min(this.form.financingYears, this.form.ownershipYears)
-      const financingCost = financedValue * (this.form.interestRate / 100) * financingYears
-      const acquisitionCost = financedValue + financingCost
-      const fuelCost = (totalKm / this.form.fuelEfficiency) * this.form.dieselPrice
-      const tireCost = (totalKm / 60000) * 7800000
-      const serviceCost = Array.from(
-        { length: this.form.ownershipYears },
-        (_, year) => this.form.annualService * (1.15 ** year),
-      ).reduce((total, cost) => total + cost, 0)
-      const maintenanceCost = tireCost + serviceCost
-      const resaleRate = Math.max(0.45, 0.85 - ((this.form.ownershipYears - 1) * 0.1))
-      const resaleValue = financedValue * resaleRate
-      const totalTco = acquisitionCost + fuelCost + maintenanceCost - resaleValue
+      const period = Number(this.form.ownershipYears)
+      const totalKm = Number(this.form.dailyKm) * Number(this.form.operatingDays) * period
+      const basePrice = Number(this.form.unitPrice) + (Number(this.form.bodyPrice) || 0)
+      const totalInterest = basePrice * ((Number(this.form.interestRate) || 0) / 100) * Number(this.form.financingYears)
+      const acquisitionCost = basePrice + totalInterest
+      const totalLiters = Math.ceil(totalKm / this.fuelEfficiency)
+      const fuelCost = totalLiters * Number(this.form.dieselPrice)
+      const tireChanges = Math.round((totalKm / Number(this.form.tireLifeKm)) * 100) / 100
+      const tireCost = tireChanges * Number(this.form.tireSetPrice)
 
-      this.result = {
-        totalKm: Math.round(totalKm),
-        acquisitionCost: Math.round(acquisitionCost),
-        fuelCost: Math.round(fuelCost),
-        maintenanceCost: Math.round(maintenanceCost),
-        resaleValue: Math.round(resaleValue),
-        totalTco: Math.round(totalTco),
-        costPerKm: Math.round(totalTco / totalKm),
-        costPerMonth: Math.round(totalTco / (this.form.ownershipYears * 12)),
+      let serviceCost = 0
+      let currentServiceCost = firstYearServiceCost
+
+      for (let year = 1; year <= period; year += 1) {
+        if (year > 1) currentServiceCost = Math.round(currentServiceCost * 1.15)
+        serviceCost += currentServiceCost
+      }
+
+      let resaleValue = basePrice
+
+      for (let year = 1; year <= period; year += 1) {
+        resaleValue *= 1 - (year === 1 ? 0.15 : 0.10)
+      }
+
+      const totalTco = acquisitionCost + fuelCost + tireCost + serviceCost - resaleValue
+
+      return {
+        totalKm,
+        totalTco,
+        costPerKm: totalKm > 0 ? Math.floor(totalTco / totalKm) : 0,
       }
     },
 
-    editCalculation() {
-      this.result = null
-      this.step = 1
-      this.errors = {}
+    async sendReport() {
+      this.emailStatus = {
+        state: 'sending',
+        message: 'Mengirim laporan detail ke email tim sales...',
+      }
+
+      try {
+        const response = await fetch(this.submitUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(this.reportPayload()),
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Laporan gagal dikirim.')
+        }
+
+        this.emailStatus = {
+          state: 'success',
+          message: 'Laporan TCO berhasil dikirim ke email tim sales.',
+        }
+      } catch (error) {
+        this.emailStatus = {
+          state: 'error',
+          message: error.message || 'Laporan gagal dikirim. Silakan coba lagi.',
+        }
+      }
     },
 
-    isWithin(value, minimum, maximum) {
-      return Number.isFinite(Number(value)) && Number(value) >= minimum && Number(value) <= maximum
+    reportPayload() {
+      return {
+        nama: this.form.name,
+        no_wa: this.form.whatsapp,
+        avg_km_harian: Number(this.form.dailyKm),
+        hari_operasi: Number(this.form.operatingDays),
+        periode_tco: Number(this.form.ownershipYears),
+        konsumsi_bbm: this.fuelEfficiency,
+        harga_unit: Number(this.form.unitPrice),
+        harga_karoseri: Number(this.form.bodyPrice) || 0,
+        bunga_flat: Number(this.form.interestRate) || 0,
+        durasi_bunga: Number(this.form.financingYears),
+        harga_solar: Number(this.form.dieselPrice),
+        harga_ban: Number(this.form.tireSetPrice),
+        umur_ban: Number(this.form.tireLifeKm),
+        tipe_unit: this.form.truckSeries,
+        kategori_model: this.form.modelKey,
+        kondisi_jalan: this.selectedRoadLabel,
+      }
+    },
+
+    resetCalculation() {
+      this.step = 1
+      this.errors = {}
+      this.result = null
+      this.emailStatus = { state: 'idle', message: '' }
+      this.form = initialForm()
+    },
+
+    isPositive(value) {
+      return Number.isFinite(Number(value)) && Number(value) > 0
     },
 
     formatCurrency(value) {
@@ -349,10 +498,6 @@ export default {
         currency: 'IDR',
         maximumFractionDigits: 0,
       }).format(value)
-    },
-
-    formatNumber(value) {
-      return new Intl.NumberFormat('id-ID').format(value)
     },
   },
 }
@@ -502,6 +647,12 @@ legend {
   font-weight: 650;
 }
 
+.field-group label em {
+  color: #a52720;
+  font-size: 11px;
+  font-style: normal;
+}
+
 input,
 select {
   width: 100%;
@@ -514,13 +665,20 @@ select {
   outline: none;
 }
 
+select:disabled {
+  cursor: not-allowed;
+  color: #89938d;
+  background: #f1f4f2;
+}
+
 input:focus,
 select:focus {
   border-color: #058c4b;
   box-shadow: 0 0 0 3px rgba(5, 140, 75, 0.14);
 }
 
-input[aria-invalid='true'] {
+input[aria-invalid='true'],
+select[aria-invalid='true'] {
   border-color: #b3261e;
 }
 
@@ -555,27 +713,18 @@ input[aria-invalid='true'] {
   left: 15px;
 }
 
-.field-help,
 .field-error {
   display: block;
   margin-top: 6px;
-  font-size: 11px;
-}
-
-.field-help {
-  color: #748078;
-}
-
-.field-error,
-.form-error {
   color: #9f211b;
+  font-size: 11px;
 }
 
 .model-summary {
   display: flex;
   align-items: center;
   gap: 15px;
-  margin: -2px 0 20px;
+  margin: -2px 0 6px;
   padding: 15px;
   border: 1px solid #cfe1d6;
   border-radius: 12px;
@@ -608,18 +757,17 @@ input[aria-invalid='true'] {
   font-size: 12px;
 }
 
-.cost-grid {
+.cost-grid,
+.tco-contact-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0 15px;
 }
 
-.form-error {
-  margin: -4px 0 18px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #fff0ef;
-  font-size: 12px;
+.tco-contact-grid {
+  margin-top: 5px;
+  padding-top: 20px;
+  border-top: 1px dashed #cdd7d1;
 }
 
 .form-actions,
@@ -673,110 +821,115 @@ input[aria-invalid='true'] {
   outline-offset: 3px;
 }
 
+.result-panel {
+  padding-top: 30px;
+  text-align: center;
+}
+
+.result-success-icon {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 15px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #078647;
+  box-shadow: 0 8px 20px rgba(7, 134, 71, 0.24);
+}
+
+.result-success-icon i {
+  font-size: 28px;
+}
+
+.result-panel h3 {
+  margin: 0;
+  color: #113e29;
+  font-size: 24px;
+}
+
+.result-greeting,
+.result-follow-up {
+  margin: 7px 0 0;
+}
+
+.result-greeting {
+  color: #29332d;
+  font-size: 15px;
+}
+
+.result-follow-up {
+  color: #078647;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .result-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 18px;
+  margin-top: 22px;
+  padding: 22px 18px;
   border-radius: 16px;
   color: #fff;
   background: #075e37;
 }
 
-.result-heading > span {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  place-items: center;
-  border-radius: 50%;
-  color: #075e37;
-  background: #fff;
-}
-
 .result-heading small,
-.result-heading strong,
-.result-heading p {
+.result-heading strong {
   display: block;
-  margin: 0;
 }
 
 .result-heading small {
-  margin-bottom: 5px;
-  opacity: 0.82;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
 }
 
 .result-heading strong {
-  font-size: clamp(22px, 3vw, 30px);
-  line-height: 1.2;
+  font-size: clamp(26px, 4vw, 36px);
 }
 
-.result-heading p {
-  margin-top: 5px;
-  font-size: 12px;
-  opacity: 0.82;
-}
-
-.result-summary {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin: 15px 0;
-}
-
-.result-summary div {
-  padding: 13px;
-  border: 1px solid #d5e2da;
-  border-radius: 11px;
-  background: #f7faf8;
-}
-
-.result-summary dt,
-.cost-breakdown dt {
-  color: #657069;
-  font-size: 11px;
-}
-
-.result-summary dd,
-.cost-breakdown dd {
-  margin: 4px 0 0;
-  font-weight: 700;
-}
-
-.result-summary dd {
-  color: #086b3b;
-  font-size: 16px;
-}
-
-.cost-breakdown {
-  margin: 0;
-  padding: 4px 0;
-  border-top: 1px solid #e1e8e4;
-  border-bottom: 1px solid #e1e8e4;
-}
-
-.cost-breakdown div {
+.email-status {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 9px 0;
-}
-
-.cost-breakdown dd {
+  justify-content: center;
+  gap: 9px;
+  margin-top: 15px;
+  padding: 12px 14px;
+  border: 1px solid;
+  border-radius: 11px;
   font-size: 12px;
-  text-align: right;
+  line-height: 1.45;
+  text-align: left;
 }
 
-.cost-breakdown .deduction dd {
-  color: #087342;
+.email-status.is-sending {
+  border-color: #7dd3fc;
+  color: #075985;
+  background: #e0f2fe;
+}
+
+.email-status.is-success {
+  border-color: #6ee7b7;
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.email-status.is-error {
+  border-color: #fca5a5;
+  color: #991b1b;
+  background: #fee2e2;
 }
 
 .result-note {
   margin: 15px 0 0;
-  color: #68736c;
+  padding: 13px;
+  border: 1px solid #f0d98a;
+  border-radius: 11px;
+  color: #765c08;
+  background: #fff8dc;
   font-size: 11px;
-  line-height: 1.5;
+  line-height: 1.55;
+  text-align: left;
 }
 
 .calculator-footer {
@@ -824,7 +977,7 @@ input[aria-invalid='true'] {
   }
 
   .cost-grid,
-  .result-summary {
+  .tco-contact-grid {
     grid-template-columns: 1fr;
   }
 

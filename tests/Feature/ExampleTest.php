@@ -19,11 +19,11 @@ class ExampleTest extends TestCase
             ->assertSee('wa.me/6281280061238', false);
     }
 
-    public function test_removed_database_backed_pages_are_not_exposed(): void
+    public function test_admin_entry_points_are_protected(): void
     {
-        $this->get('/login')->assertNotFound();
+        $this->get('/login')->assertOk();
         $this->get('/register')->assertNotFound();
-        $this->get('/dashboard')->assertNotFound();
-        $this->get('/admin/sales')->assertNotFound();
+        $this->get('/dashboard')->assertRedirect('/login');
+        $this->get('/admin/sales')->assertRedirect('/login');
     }
 }

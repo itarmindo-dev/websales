@@ -5,19 +5,19 @@
 @section('content')
 <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
 
-<div x-data="{ menuOpen: false }" @keydown.escape.window="menuOpen = false">
-    <header class="site-header">
+<div x-data="{ menuOpen: false, scrolled: window.scrollY > 24 }" @scroll.window="scrolled = window.scrollY > 24" @keydown.escape.window="menuOpen = false">
+    <header class="site-header" :class="{ 'is-scrolled': scrolled }">
         <nav class="site-nav" aria-label="Navigasi utama">
             <a href="#home" class="brand-hino" aria-label="Armindo Perkasa - Beranda">
                 <img src="{{ asset('img/logo/logohinopth.png') }}" alt="HINO">
             </a>
 
             <div class="desktop-nav">
-                <a href="#home" class="is-active">Beranda</a>
-                <a href="#models">Model Truk</a>
-                <a href="#tco">Kalkulator TCO</a>
-                <a href="#testimonials">Testimoni</a>
-                <a href="#contact">Tentang Kami</a>
+                <a href="#home" class="is-active" data-nav-section="home" aria-current="location">Beranda</a>
+                <a href="#tco" data-nav-section="tco">Kalkulator TCO</a>
+                <a href="#models" data-nav-section="models">Model Truk</a>
+                <a href="#testimonials" data-nav-section="testimonials">Testimoni</a>
+                <a href="#contact" data-nav-section="contact">Tentang Kami</a>
             </div>
 
             <div class="nav-actions">
@@ -34,11 +34,11 @@
         </nav>
 
         <div id="mobile-navigation" class="mobile-nav" x-cloak x-show="menuOpen" x-transition.opacity @click.outside="menuOpen = false">
-            <a href="#home" @click="menuOpen = false">Beranda</a>
-            <a href="#models" @click="menuOpen = false">Model Truk</a>
-            <a href="#tco" @click="menuOpen = false">Kalkulator TCO</a>
-            <a href="#testimonials" @click="menuOpen = false">Testimoni</a>
-            <a href="#contact" @click="menuOpen = false">Tentang Kami</a>
+            <a href="#home" class="is-active" data-nav-section="home" aria-current="location" @click="menuOpen = false">Beranda</a>
+            <a href="#tco" data-nav-section="tco" @click="menuOpen = false">Kalkulator TCO</a>
+            <a href="#models" data-nav-section="models" @click="menuOpen = false">Model Truk</a>
+            <a href="#testimonials" data-nav-section="testimonials" @click="menuOpen = false">Testimoni</a>
+            <a href="#contact" data-nav-section="contact" @click="menuOpen = false">Tentang Kami</a>
             <a href="https://wa.me/6281280061238?text=Halo%20Armindo%20Perkasa,%20saya%20ingin%20konsultasi%20unit%20HINO." target="_blank" rel="noopener noreferrer">
                 <i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Hubungi Sales
             </a>
@@ -47,30 +47,25 @@
 
     <main id="main-content">
         <section id="home" class="hero-section" aria-labelledby="hero-title">
-            <div class="section-container hero-inner">
-                <img class="hero-map" src="{{ asset('img/shape/map-4.png') }}" alt="Jaringan Armindo Perkasa di Tangerang, Ciputat, Ciawi, dan Cirebon">
-                <img class="hero-truck" src="{{ asset('img/slider/truck-slide4.png') }}" alt="HINO 500 dump truck berwarna hijau">
+            <img class="hero-background" src="{{ asset('img/slider/armindo_background.jpeg') }}" alt="Truk HINO Armindo Perkasa melaju di jalan pegunungan">
 
+            <div class="section-container hero-inner">
                 <div class="hero-copy">
-                    <p class="eyebrow">Distributor resmi HINO Indonesia</p>
-                    <h1 id="hero-title">Armindo Perkasa</h1>
-                    <p class="hero-lead">Performa tangguh, mitra bisnis terpercaya.<br>Jaringan layanan nasional.</p>
+                    <p class="eyebrow">Dealer resmi HINO</p>
+                    <h1 id="hero-title">Armindo Perkasa<br><span>Armada Tangguh, Bisnis Maju</span></h1>
+                    <p class="hero-lead">Konsultasi unit, informasi stok, dan layanan purna jual HINO<br class="hero-desktop-break"> dari tim yang memahami kebutuhan bisnis Anda.</p>
 
                     <div class="hero-actions">
                         <a class="button button-primary" href="https://wa.me/6281280061238?text=Halo%20Armindo%20Perkasa,%20saya%20ingin%20konsultasi%20unit%20HINO." target="_blank" rel="noopener noreferrer">Konsultasi Unit</a>
                         <a class="button button-outline" href="#models">Lihat Produk</a>
                     </div>
+                </div>
 
-                    <div class="hero-credentials" aria-label="Kredensial dealer">
-                        <div class="credential-item">
-                            <i class="fa-solid fa-shield-check" aria-hidden="true"></i>
-                            <span><small>Terakreditasi</small>HINO Motor Sales Indonesia</span>
-                        </div>
-                        <div class="credential-item">
-                            <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-                            <span><small>Penghargaan</small>Dealer Terbaik</span>
-                        </div>
-                    </div>
+                <div class="hero-locations" aria-label="Jaringan cabang Armindo Perkasa">
+                    <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Tangerang</span>
+                    <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Ciputat</span>
+                    <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Ciawi</span>
+                    <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Cirebon</span>
                 </div>
             </div>
         </section>
@@ -112,7 +107,12 @@
                     </a>
                 </div>
 
-                <div id="tco-calculator-app" class="tco-app-shell" aria-live="polite"></div>
+                <div
+                    id="tco-calculator-app"
+                    class="tco-app-shell"
+                    data-submit-url="{{ route('tco.submit') }}"
+                    aria-live="polite"
+                ></div>
             </div>
         </section>
 
@@ -120,7 +120,7 @@
             <div class="section-container ready-grid">
                 <div class="ready-copy">
                     <p class="section-kicker">Truk HINO impian Anda sudah tersedia</p>
-                    <h2 id="ready-title"><span>Ready Unit</span><br>- Siap Kirim!</h2>
+                    <h2 id="ready-title"><span>Ready Unit</span><br>Siap Kirim!</h2>
                     <p>Unit terbatas dengan perputaran cepat. Dapatkan informasi stok terbaru, promo unit, dan konsultasi langsung dengan sales resmi kami hari ini.</p>
                     <small>Ketersediaan unit dapat berubah sewaktu-waktu.</small>
                 </div>
@@ -128,9 +128,13 @@
                 <div class="ready-visual">
                     <img src="{{ asset('img/shape/bus-3.png') }}" alt="Lineup kendaraan HINO siap kirim">
                     <a class="ready-contact" href="https://wa.me/6281280061238?text=Halo%20Armindo%20Perkasa,%20saya%20ingin%20menanyakan%20stok%20unit%20HINO." target="_blank" rel="noopener noreferrer">
-                        <span>Chat WhatsApp Sekarang</span>
-                        <strong>0812 8006 1238</strong>
-                        <small><i class="fa-solid fa-bolt" aria-hidden="true"></i> Respon cepat · Konsultasi gratis</small>
+                        <i class="fa-brands fa-whatsapp ready-contact-icon" aria-hidden="true"></i>
+                        <span class="ready-contact-copy">
+                            <span class="ready-contact-label">Chat WhatsApp Sekarang</span>
+                            <strong>0812 8006 1238</strong>
+                            <small>Respon cepat · Konsultasi gratis</small>
+                        </span>
+                        <i class="fa-solid fa-arrow-right ready-contact-arrow" aria-hidden="true"></i>
                     </a>
                 </div>
             </div>

@@ -54,7 +54,7 @@ class TcoController extends Controller
             $kondisi_jalan  = $validated['kondisi_jalan'] ?? '-';
             
             $sales_name     = $validated['sales_name'] ?? 'Tim Sales';
-            $sales_email    = $validated['sales_email'] ?? 'hinomarketing.ap@gmail.com';
+            $sales_email    = $validated['sales_email'] ?? 'itarmindo@gmail.com';
 
             // --- 3. PERHITUNGAN TCO ---
             $km_per_tahun = $avg_km_harian * $hari_operasi;
@@ -187,10 +187,10 @@ class TcoController extends Controller
             $pdfContent = $pdf->output();
             
             $recipients = [
-                ['email' => 'hinomarketing.ap@gmail.com', 'name' => 'Tim Sales Utama']
+                ['email' => 'itarmindo@gmail.com', 'name' => 'Tim Sales Utama']
             ];
             
-            if ($sales_email !== 'hinomarketing.ap@gmail.com') {
+            if ($sales_email !== 'itarmindo@gmail.com') {
                 $recipients[] = ['email' => $sales_email, 'name' => $sales_name];
             }
 

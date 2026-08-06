@@ -1,54 +1,56 @@
 # Design QA - Armindo Perkasa Landing Page
 
-## Source of truth
+## Source visual truth
 
-- Hero: `C:/Users/aplap/AppData/Local/Temp/codex-clipboard-e314b70a-e869-42e3-8a57-3ace16d13fd2.jpg`
-- TCO: `C:/Users/aplap/AppData/Local/Temp/codex-clipboard-8767ef50-2734-4d2f-b428-1c7ceb11e4ba.jpg`
-- Ready unit: `C:/Users/aplap/AppData/Local/Temp/codex-clipboard-6b396ded-a526-41f6-b394-e483c1f08e05.jpg`
-- Testimonials: `C:/Users/aplap/AppData/Local/Temp/codex-clipboard-ebcd1006-dd00-4faf-88de-d351a02c1393.jpg`
-- Contact: `C:/Users/aplap/AppData/Local/Temp/codex-clipboard-19c50d52-02ac-4bab-a508-aa4956f2a014.jpg`
-- Previous full-page implementation: `C:/Users/aplap/AppData/Local/Temp/codex-clipboard-60c01025-49e1-407c-8464-48f2456d3e76.png`
+- Latest hero concept: `C:/Users/aplap/AppData/Local/Temp/codex-clipboard-71d69ff4-c20f-47c4-9572-7835a77d6183.png`
+- Required hero asset: `C:/xampp/htdocs/LaravelProject/Sales/WebSales/public/img/slider/armindo_background.jpeg`
+- Previous full-page references remain the source of truth for the TCO, ready-unit, testimonial, and contact sections.
 
-## Verified implementation evidence
+## Implementation evidence
 
-- Desktop overview: `C:/Users/aplap/.codex/visualizations/2026/08/03/019fc6d7-730d-7cd2-bc3a-ab9426a92eac/verified-desktop-overview.png`
-- Mobile overview: `C:/Users/aplap/.codex/visualizations/2026/08/03/019fc6d7-730d-7cd2-bc3a-ab9426a92eac/verified-mobile-overview.png`
-- Mobile menu open: `C:/Users/aplap/.codex/visualizations/2026/08/03/019fc6d7-730d-7cd2-bc3a-ab9426a92eac/mobile-menu-open-final.png`
-- TCO result state: `C:/Users/aplap/.codex/visualizations/2026/08/03/019fc6d7-730d-7cd2-bc3a-ab9426a92eac/desktop-tco-result-final.png`
-- Desktop comparison sheets:
-  - `verified-compare-hero.png`
-  - `verified-compare-tco.png`
-  - `verified-compare-models.png`
-  - `verified-compare-testimonials.png`
-  - `verified-compare-contact.png`
+- Desktop pass 1: `C:/xampp/htdocs/LaravelProject/Sales/WebSales/design-qa-assets/hero-desktop-pass1.png`
+- Desktop post-fix capture: `C:/xampp/htdocs/LaravelProject/Sales/WebSales/design-qa-assets/hero-desktop-pass2.png`
+- Mobile capture: `C:/xampp/htdocs/LaravelProject/Sales/WebSales/design-qa-assets/hero-mobile-final.png`
+- Final side-by-side comparison: `C:/xampp/htdocs/LaravelProject/Sales/WebSales/design-qa-assets/hero-comparison-final.png`
 
-All comparison sheets are stored in `C:/Users/aplap/.codex/visualizations/2026/08/03/019fc6d7-730d-7cd2-bc3a-ab9426a92eac/` and place the 16:9 reference beside the implementation in one image.
+## Capture conditions and normalization
 
-## Capture conditions
-
-- Desktop viewport: 1440 × 810 CSS pixels, 1× screenshot density.
-- Mobile viewport: 390 × 844 CSS pixels, 1× screenshot density.
-- State: production Vite build served by Laravel at the landing page route.
+- Route/state: `/`, top of page, production Vite build served by Laravel.
 - Browser: Codex in-app browser.
-- Full-view coverage: five desktop section captures and six mobile state/section captures.
+- Source pixels: 562 x 421. The concept's inner design frame was cropped to 522 x 372 before comparison.
+- Desktop CSS viewport: 1280 x 720, device pixel ratio 1.5. Browser content raster: 1265 x 712.
+- Mobile CSS viewport: 390 x 844, device pixel ratio 1. Browser content raster: 375 x 812.
+- The source crop was aspect-filled to 1265 x 712 only for the comparison sheet; the implementation was not rescaled.
+- State matched: transparent desktop navigation, centered hero copy and CTAs, product focal point, and bottom trust/location strip.
 
-## Findings and corrections
+## Full-view comparison evidence
 
-1. Initial desktop hero was taller than the reference, leaving the CTA too low in a 16:9 viewport. Reduced the hero height and rebalanced map, truck, copy, CTA, and credential positions.
-2. Initial TCO heading wrapped to three lines. Adjusted its desktop scale so the hierarchy and line breaks follow the reference more closely.
-3. Initial contact cutout left excessive empty space. Replaced it with the existing full dealer asset and a restrained readability overlay, then tightened the heading width and vertical rhythm.
-4. Initial mobile hero placed credentials over the second CTA. Returned the credentials to normal document flow and reserved a separate area for the truck.
-5. Full-page browser stitching repeated absolutely positioned hero content. This was treated as a capture-tool artifact, not accepted as QA evidence; all final judgments use viewport-aligned section captures and side-by-side comparison sheets.
+`hero-comparison-final.png` places the reference and implementation in one image. Both use a full-bleed valley landscape, lightweight navigation over the sky, centered dark display copy, green primary CTA, white secondary CTA, a central product focal point, and a restrained bottom strip. The supplied HINO truck in `armindo_background.jpeg` intentionally replaces the payment-card object in the generic concept.
+
+Focused-region comparison was not required because the final 2530 x 776 comparison keeps the navigation, display typography, CTA labels, truck asset, and branch labels legible at once.
+
+## Required fidelity surfaces
+
+- Fonts and typography: existing Outfit family retained; headline uses a heavy optical weight, compact leading, and two-line desktop hierarchy matching the concept. Mobile wrapping remains readable without clipping.
+- Spacing and layout rhythm: navigation, headline, body copy, CTAs, truck focal point, and bottom locations occupy the same vertical sequence as the concept. No new card-heavy structure was introduced.
+- Colors and tokens: existing HINO/Armindo green tokens retained. Dark navy-green headline and restrained translucent white surfaces preserve contrast over the photo.
+- Image quality and asset fidelity: the exact requested JPEG is used as a full-bleed `object-fit: cover` image; no placeholder, CSS drawing, generated substitute, or stretched secondary truck asset is present.
+- Copy and content: generic financial-product copy was replaced with concise dealer-specific content; branch names and CTA destinations are real project content.
+
+## Comparison history
+
+1. Pass 1 found one P2 layout issue: the previous `760px` minimum hero height exceeded a 720px desktop viewport, moving the branch strip below the visible fold.
+2. Fix: changed the desktop hero to `height: 100svh` with a 680px safety minimum while keeping mobile at a 760px minimum.
+3. Pass 2 evidence: `hero-desktop-pass2.png` shows all four branches within the hero; the side-by-side sheet confirms the final composition and hierarchy.
 
 ## Functional and accessibility checks
 
-- No horizontal overflow at desktop or mobile breakpoints.
+- No horizontal overflow at the 390px mobile viewport.
 - No broken images and no browser console warnings or errors.
-- One `h1`, one `main`, and one primary `nav` landmark.
-- Mobile navigation opens, closes, and scrolls to the selected section.
-- Calculator invalid input produces field-level text feedback.
-- Calculator completes all three steps, produces a detailed TCO result, and creates a WhatsApp URL containing the selected HINO unit and calculated total.
-- Visible focus treatment, explicit form labels, meaningful image alternatives, and reduced-motion handling are present.
-- Calculator data is processed client-side and is not persisted.
+- Hero has one descriptive `h1`, a labelled section, meaningful background-image alternative text, and keyboard-visible CTA focus styles.
+- Mobile menu opens and closes with its expanded state exposed to assistive technology.
+- `Lihat Produk` was activated and correctly scrolled to `#models`.
+- WhatsApp CTAs retain explicit destinations and safe external-link attributes.
+- The existing client-side TCO calculator and all later sections remain intact.
 
 final result: passed

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="PT Armindo Perkasa, dealer resmi HINO untuk kebutuhan armada bisnis Anda.">
     <title>@yield('title', 'Armindo Perkasa - Dealer Resmi HINO')</title>
     <link rel="icon" href="{{ asset('img/icon/logohino2.png') }}">
