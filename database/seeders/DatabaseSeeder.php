@@ -12,5 +12,6 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Akun admin dibuat secara eksplisit melalui `php artisan admin:create`.
+        $this->call(SalesProfileSeeder::class);
     }
 }

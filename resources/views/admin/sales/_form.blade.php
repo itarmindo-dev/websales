@@ -15,6 +15,45 @@
         </div>
     @endif
 
+    @if ($showAccountFields ?? false)
+        <section aria-labelledby="account-heading">
+            <h2 id="account-heading" class="text-base font-semibold text-gray-900">Akun login sales</h2>
+            <p class="mt-1 text-sm text-gray-500">
+                @if ($sale?->user)
+                    Kosongkan password jika tidak ingin menggantinya.
+                @else
+                    Email dan password bersifat opsional. Isi keduanya agar sales dapat mengelola profil ini sendiri.
+                @endif
+            </p>
+            <div class="mt-4 grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="account_email" class="{{ $labelClass }}">Email login</label>
+                    <input id="account_email" name="account_email" type="email" value="{{ old('account_email', $sale?->user?->email) }}" maxlength="255" autocomplete="username" class="{{ $inputClass }}">
+                    <x-input-error :messages="$errors->get('account_email')" class="mt-2" />
+                </div>
+                <div class="flex items-end pb-2">
+                    <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <input type="hidden" name="account_enabled" value="0">
+                        <input type="checkbox" name="account_enabled" value="1" @checked(old('account_enabled', $sale?->user?->is_sales ?? true)) class="rounded border-gray-300 text-green-700 focus:ring-green-600">
+                        Akun dapat digunakan untuk login
+                    </label>
+                </div>
+                <div>
+                    <label for="account_password" class="{{ $labelClass }}">{{ $sale?->user ? 'Password baru' : 'Password login' }}</label>
+                    <input id="account_password" name="account_password" type="password" minlength="12" autocomplete="new-password" class="{{ $inputClass }}">
+                    <p class="mt-1 text-xs text-gray-500">Minimal 12 karakter.</p>
+                    <x-input-error :messages="$errors->get('account_password')" class="mt-2" />
+                </div>
+                <div>
+                    <label for="account_password_confirmation" class="{{ $labelClass }}">Konfirmasi password</label>
+                    <input id="account_password_confirmation" name="account_password_confirmation" type="password" minlength="12" autocomplete="new-password" class="{{ $inputClass }}">
+                </div>
+            </div>
+        </section>
+
+        <hr class="border-gray-200">
+    @endif
+
     <section aria-labelledby="identity-heading">
         <h2 id="identity-heading" class="text-base font-semibold text-gray-900">Identitas sales</h2>
         <div class="mt-4 grid gap-5 sm:grid-cols-2">
@@ -73,7 +112,7 @@
                 <label for="photo" class="{{ $labelClass }}">Foto profil</label>
                 @if ($sale?->photo)
                     <div class="mt-2 flex items-center gap-4">
-                        <img src="{{ Storage::disk('public')->url($sale->photo) }}" alt="Foto {{ $sale->name }}" class="h-24 w-24 rounded-lg object-cover">
+                        <img src="{{ $sale->mediaUrl($sale->photo) }}" alt="Foto {{ $sale->name }}" class="h-24 w-24 rounded-lg object-cover">
                         <label class="flex items-center gap-2 text-sm text-gray-700">
                             <input type="checkbox" name="remove_photo" value="1" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
                             Hapus foto saat ini
@@ -90,7 +129,7 @@
                     <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($sale->documentation_photos as $documentationPhoto)
                             <label class="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                                <img src="{{ Storage::disk('public')->url($documentationPhoto) }}" alt="Dokumentasi {{ $sale->name }}" class="h-32 w-full object-cover">
+                                <img src="{{ $sale->mediaUrl($documentationPhoto) }}" alt="Dokumentasi {{ $sale->name }}" class="h-32 w-full object-cover">
                                 <span class="flex items-center gap-2 p-3 text-sm text-gray-700">
                                     <input type="checkbox" name="remove_documentation_photos[]" value="{{ $documentationPhoto }}" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
                                     Hapus foto
@@ -111,6 +150,6 @@
 </div>
 
 <div class="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row sm:justify-end sm:px-8">
-    <a href="{{ route('admin.sales.index') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</a>
+    <a href="{{ $cancelRoute }}" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</a>
     <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2">{{ $submitLabel }}</button>
 </div>

@@ -45,7 +45,7 @@ class AdminSalesProfileTest extends TestCase
             ->assertSee('Tambah Profil Sales');
     }
 
-    public function test_only_admin_account_can_complete_login(): void
+    public function test_only_admin_or_sales_account_can_complete_login(): void
     {
         $regularUser = User::factory()->create(['email' => 'user@example.com']);
 
@@ -62,6 +62,16 @@ class AdminSalesProfileTest extends TestCase
             'password' => 'password',
         ])->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($admin);
+
+        $this->post(route('logout'));
+
+        $salesUser = User::factory()->sales()->create(['email' => 'sales@example.com']);
+
+        $this->post(route('login'), [
+            'email' => $salesUser->email,
+            'password' => 'password',
+        ])->assertRedirect(route('sales.self.edit'));
+        $this->assertAuthenticatedAs($salesUser);
     }
 
     public function test_admin_create_command_creates_a_verified_admin_without_default_password(): void
@@ -91,6 +101,10 @@ class AdminSalesProfileTest extends TestCase
             'tagline' => 'Sales Executive',
             'specialties' => 'HINO 300 dan HINO 500',
             'bio' => 'Membantu pemilihan armada sesuai kebutuhan usaha.',
+            'account_email' => 'budi@example.com',
+            'account_password' => 'password-sales-123',
+            'account_password_confirmation' => 'password-sales-123',
+            'account_enabled' => '1',
             'photo' => UploadedFile::fake()->image('budi.jpg', 600, 600),
             'documentation_photos' => [
                 UploadedFile::fake()->image('handover.jpg', 800, 600),
@@ -102,8 +116,17 @@ class AdminSalesProfileTest extends TestCase
         $response->assertRedirect(route('admin.sales.index'));
         $this->assertSame('budi-hino', $sale->slug);
         $this->assertSame('6281280061238', $sale->whatsapp_number);
+        $this->assertSame('budi@example.com', $sale->user->email);
+        $this->assertTrue($sale->user->is_sales);
+        $this->assertTrue(Hash::check('password-sales-123', $sale->user->password));
         Storage::disk('public')->assertExists($sale->photo);
         Storage::disk('public')->assertExists($sale->documentation_photos[0]);
+
+        $this->post(route('logout'));
+        $this->post(route('login'), [
+            'email' => 'budi@example.com',
+            'password' => 'password-sales-123',
+        ])->assertRedirect(route('sales.self.edit'));
 
         $this->get(route('sales.profile', $sale->slug))
             ->assertOk()

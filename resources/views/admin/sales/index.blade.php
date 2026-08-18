@@ -33,6 +33,7 @@
                                 <tr>
                                     <th scope="col" class="px-6 py-3">Sales</th>
                                     <th scope="col" class="px-6 py-3">Kontak</th>
+                                    <th scope="col" class="px-6 py-3">Akun sales</th>
                                     <th scope="col" class="px-6 py-3">Halaman publik</th>
                                     <th scope="col" class="px-6 py-3 text-right">Aksi</th>
                                 </tr>
@@ -43,7 +44,7 @@
                                         <td class="whitespace-nowrap px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 @if ($sale->photo)
-                                                    <img src="{{ Storage::disk('public')->url($sale->photo) }}" alt="Foto {{ $sale->name }}" class="h-11 w-11 rounded-full object-cover">
+                                                    <img src="{{ $sale->mediaUrl($sale->photo) }}" alt="Foto {{ $sale->name }}" class="h-11 w-11 rounded-full object-cover">
                                                 @else
                                                     <span class="grid h-11 w-11 place-items-center rounded-full bg-green-50 font-semibold text-green-800">{{ Str::upper(Str::substr($sale->name, 0, 1)) }}</span>
                                                 @endif
@@ -57,6 +58,16 @@
                                             <p>{{ $sale->whatsapp_number ? '+'.$sale->whatsapp_number : 'WhatsApp belum diisi' }}</p>
                                             @if ($sale->phone)
                                                 <p class="mt-1 text-xs text-gray-500">{{ $sale->phone }}</p>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            @if ($sale->user)
+                                                <p class="text-sm text-gray-700">{{ $sale->user->email }}</p>
+                                                <span class="mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ $sale->user->is_sales ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">
+                                                    {{ $sale->user->is_sales ? 'Dapat login' : 'Dinonaktifkan' }}
+                                                </span>
+                                            @else
+                                                <span class="text-sm text-gray-500">Belum terhubung</span>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4">

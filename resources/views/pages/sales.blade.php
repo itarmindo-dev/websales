@@ -55,7 +55,7 @@
 
                 <div class="mx-auto w-full max-w-sm">
                     @if ($sale->photo)
-                        <img src="{{ Storage::disk('public')->url($sale->photo) }}" alt="Foto {{ $sale->name }}" class="aspect-square w-full rounded-3xl border-4 border-white/20 object-cover shadow-2xl">
+                        <img src="{{ $sale->mediaUrl($sale->photo) }}" alt="Foto {{ $sale->name }}" class="aspect-square w-full rounded-3xl border-4 border-white/20 object-cover shadow-2xl">
                     @else
                         <div class="grid aspect-square w-full place-items-center rounded-3xl border-4 border-white/20 bg-white/10 text-7xl font-semibold text-white shadow-2xl">
                             {{ Str::upper(Str::substr($sale->name, 0, 1)) }}
@@ -128,7 +128,7 @@
                     </div>
                     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($sale->documentation_photos as $documentationPhoto)
-                            <img src="{{ Storage::disk('public')->url($documentationPhoto) }}" alt="Dokumentasi penyerahan unit oleh {{ $sale->name }}" loading="lazy" class="aspect-[4/3] w-full rounded-xl object-cover">
+                            <img src="{{ $sale->mediaUrl($documentationPhoto) }}" alt="Dokumentasi penyerahan unit oleh {{ $sale->name }}" loading="lazy" class="aspect-[4/3] w-full rounded-xl object-cover">
                         @endforeach
                     </div>
                 </div>

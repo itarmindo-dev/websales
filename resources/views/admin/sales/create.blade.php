@@ -10,7 +10,12 @@
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <form method="POST" action="{{ route('admin.sales.store') }}" enctype="multipart/form-data" class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                 @csrf
-                @include('admin.sales._form', ['sale' => null, 'submitLabel' => 'Simpan Profil'])
+                @include('admin.sales._form', [
+                    'sale' => null,
+                    'submitLabel' => 'Simpan Profil',
+                    'cancelRoute' => route('admin.sales.index'),
+                    'showAccountFields' => true,
+                ])
             </form>
         </div>
     </div>

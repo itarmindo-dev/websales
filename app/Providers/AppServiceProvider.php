@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('access-admin', fn (User $user): bool => (bool) $user->is_admin);
+        Gate::define('access-sales', fn (User $user): bool => (bool) $user->is_sales && ! $user->is_admin);
 
         Vite::prefetch(concurrency: 3);
     }

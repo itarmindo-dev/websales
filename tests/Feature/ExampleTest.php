@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    public function test_landing_page_can_be_opened_without_a_database(): void
+    use RefreshDatabase;
+
+    public function test_landing_page_can_be_opened(): void
     {
         $response = $this->get('/');
 
@@ -25,5 +27,6 @@ class ExampleTest extends TestCase
         $this->get('/register')->assertNotFound();
         $this->get('/dashboard')->assertRedirect('/login');
         $this->get('/admin/sales')->assertRedirect('/login');
+        $this->get('/admin/landing-page')->assertRedirect('/login');
     }
 }

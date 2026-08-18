@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h1 class="text-2xl font-semibold text-gray-900">Panel Admin</h1>
-        <p class="mt-1 text-sm text-gray-500">Masuk untuk mengelola profil sales Armindo Perkasa.</p>
+        <h1 class="text-2xl font-semibold text-gray-900">Panel Armindo Perkasa</h1>
+        <p class="mt-1 text-sm text-gray-500">Masuk sebagai admin atau sales untuk mengelola data yang menjadi tanggung jawab Anda.</p>
     </div>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />

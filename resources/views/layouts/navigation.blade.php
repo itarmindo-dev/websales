@@ -1,18 +1,27 @@
+@php
+    $currentUser = Auth::user();
+    $currentSalesProfile = $currentUser->is_sales ? $currentUser->salesProfile : null;
+@endphp
+
 <nav x-data="{ open: false }" class="border-b border-gray-200 bg-white">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 justify-between">
             <div class="flex min-w-0">
-                <a href="{{ route('dashboard') }}" class="flex shrink-0 items-center" aria-label="Dashboard Armindo Perkasa">
+                <a href="{{ $currentUser->is_admin ? route('dashboard') : route('sales.self.edit') }}" class="flex shrink-0 items-center" aria-label="Panel Armindo Perkasa">
                     <x-application-logo class="h-9 w-32" />
                 </a>
 
                 <div class="hidden space-x-8 sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        Dashboard
-                    </x-nav-link>
-                    <x-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">
-                        Profil Sales
-                    </x-nav-link>
+                    @if ($currentUser->is_admin)
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-nav-link>
+                        <x-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">Profil Sales</x-nav-link>
+                        <x-nav-link :href="route('admin.landing.edit')" :active="request()->routeIs('admin.landing.*', 'admin.truck-models.*', 'admin.testimonials.*')">Landing Page</x-nav-link>
+                    @else
+                        <x-nav-link :href="route('sales.self.edit')" :active="request()->routeIs('sales.self.*')">Profil Saya</x-nav-link>
+                        @if ($currentSalesProfile)
+                            <x-nav-link :href="route('sales.profile', $currentSalesProfile->slug)" :active="false" target="_blank" rel="noopener">Halaman Publik</x-nav-link>
+                        @endif
+                    @endif
                     <x-nav-link :href="route('home')" :active="false" target="_blank" rel="noopener">
                         Lihat Website
                     </x-nav-link>
@@ -62,8 +71,16 @@
 
     <div id="admin-mobile-menu" x-show="open" x-cloak class="border-t border-gray-100 sm:hidden">
         <div class="space-y-1 py-2">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">Profil Sales</x-responsive-nav-link>
+            @if ($currentUser->is_admin)
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">Profil Sales</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.landing.edit')" :active="request()->routeIs('admin.landing.*', 'admin.truck-models.*', 'admin.testimonials.*')">Landing Page</x-responsive-nav-link>
+            @else
+                <x-responsive-nav-link :href="route('sales.self.edit')" :active="request()->routeIs('sales.self.*')">Profil Saya</x-responsive-nav-link>
+                @if ($currentSalesProfile)
+                    <x-responsive-nav-link :href="route('sales.profile', $currentSalesProfile->slug)" target="_blank" rel="noopener">Halaman Publik</x-responsive-nav-link>
+                @endif
+            @endif
             <x-responsive-nav-link :href="route('home')" target="_blank" rel="noopener">Lihat Website</x-responsive-nav-link>
         </div>
 

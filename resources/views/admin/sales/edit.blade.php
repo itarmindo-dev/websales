@@ -11,7 +11,12 @@
             <form method="POST" action="{{ route('admin.sales.update', $sale) }}" enctype="multipart/form-data" class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                 @csrf
                 @method('PATCH')
-                @include('admin.sales._form', ['sale' => $sale, 'submitLabel' => 'Simpan Perubahan'])
+                @include('admin.sales._form', [
+                    'sale' => $sale,
+                    'submitLabel' => 'Simpan Perubahan',
+                    'cancelRoute' => route('admin.sales.index'),
+                    'showAccountFields' => true,
+                ])
             </form>
         </div>
     </div>

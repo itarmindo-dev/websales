@@ -48,7 +48,7 @@
                             <li class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div class="flex min-w-0 items-center gap-3">
                                     @if ($sale->photo)
-                                        <img src="{{ Storage::disk('public')->url($sale->photo) }}" alt="" class="h-11 w-11 shrink-0 rounded-full object-cover">
+                                        <img src="{{ $sale->mediaUrl($sale->photo) }}" alt="" class="h-11 w-11 shrink-0 rounded-full object-cover">
                                     @else
                                         <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-green-50 font-semibold text-green-800">{{ Str::upper(Str::substr($sale->name, 0, 1)) }}</span>
                                     @endif

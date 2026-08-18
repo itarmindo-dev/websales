@@ -27,17 +27,21 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        if (! $request->user()->is_admin) {
+        if (! $request->user()->is_admin && ! $request->user()->is_sales) {
             Auth::guard('web')->logout();
 
             throw ValidationException::withMessages([
-                'email' => 'Akun ini tidak memiliki akses ke panel admin.',
+                'email' => 'Akun ini tidak memiliki akses ke panel.',
             ]);
         }
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        if ($request->user()->is_admin) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
+        return redirect()->route('sales.self.edit');
     }
 
     /**

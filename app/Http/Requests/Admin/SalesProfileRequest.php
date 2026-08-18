@@ -3,13 +3,18 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
+use Illuminate\Validation\Rules\Password;
 
 class SalesProfileRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('access-admin') ?? false;
+        $user = $this->user();
+
+        return (bool) $user && ($user->can('access-admin') || $user->can('access-sales'));
     }
 
     protected function prepareForValidation(): void
@@ -30,12 +35,16 @@ class SalesProfileRequest extends FormRequest
             'slogan' => $this->trimNullable('slogan'),
             'specialties' => $this->trimNullable('specialties'),
             'bio' => $this->trimNullable('bio'),
+            'account_email' => $this->input('account_email')
+                ? Str::lower(trim((string) $this->input('account_email')))
+                : null,
+            'account_enabled' => $this->boolean('account_enabled'),
         ]);
     }
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'whatsapp_number' => ['nullable', 'digits_between:8,16'],
@@ -52,6 +61,27 @@ class SalesProfileRequest extends FormRequest
             'remove_documentation_photos' => ['nullable', 'array'],
             'remove_documentation_photos.*' => ['string'],
         ];
+
+        if ($this->user()?->can('access-admin')) {
+            $sale = $this->route('sale');
+            $ownerId = $sale?->user_id;
+
+            $rules['account_email'] = [
+                $ownerId ? 'required' : 'nullable',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($ownerId),
+                Rule::requiredIf(fn (): bool => $this->filled('account_password')),
+            ];
+            $rules['account_password'] = [
+                $ownerId ? 'nullable' : Rule::requiredIf(fn (): bool => $this->filled('account_email')),
+                'confirmed',
+                Password::min(12),
+            ];
+            $rules['account_enabled'] = ['required', 'boolean'];
+        }
+
+        return $rules;
     }
 
     public function messages(): array

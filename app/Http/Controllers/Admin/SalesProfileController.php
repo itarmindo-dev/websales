@@ -5,19 +5,18 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SalesProfileRequest;
 use App\Models\SalesProfile;
+use App\Models\User;
+use App\Services\SalesProfileService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-use Throwable;
 
 class SalesProfileController extends Controller
 {
     public function index(): View
     {
         return view('admin.sales.index', [
-            'sales' => SalesProfile::query()->latest()->paginate(12),
+            'sales' => SalesProfile::query()->with('user')->latest()->paginate(12),
         ]);
     }
 
@@ -26,125 +25,83 @@ class SalesProfileController extends Controller
         return view('admin.sales.create');
     }
 
-    public function store(SalesProfileRequest $request): RedirectResponse
+    public function store(SalesProfileRequest $request, SalesProfileService $profiles): RedirectResponse
     {
-        $validated = $request->validated();
-        $data = $this->profileData($validated);
-        $data['slug'] = $this->uniqueSlug($data['name']);
-        $uploadedPaths = [];
-
-        try {
-            if ($request->hasFile('photo')) {
-                $data['photo'] = $request->file('photo')->store('sales_photos', 'public');
-                $uploadedPaths[] = $data['photo'];
-            }
-
-            $data['documentation_photos'] = $this->storeDocumentationPhotos($request, $uploadedPaths);
-            SalesProfile::query()->create($data);
-        } catch (Throwable $exception) {
-            Storage::disk('public')->delete($uploadedPaths);
-
-            throw $exception;
-        }
+        DB::transaction(function () use ($request, $profiles): void {
+            $owner = $this->createAccountWhenRequested($request);
+            $profiles->save(new SalesProfile, $request, $owner);
+        });
 
         return to_route('admin.sales.index')->with('success', 'Profil sales berhasil dibuat.');
     }
 
     public function edit(SalesProfile $sale): View
     {
+        $sale->load('user');
+
         return view('admin.sales.edit', compact('sale'));
     }
 
-    public function update(SalesProfileRequest $request, SalesProfile $sale): RedirectResponse
-    {
-        $validated = $request->validated();
-        $data = $this->profileData($validated);
-        $existingDocumentation = $sale->documentation_photos ?? [];
-        $requestedRemoval = array_intersect(
-            $existingDocumentation,
-            $validated['remove_documentation_photos'] ?? [],
-        );
-        $remainingDocumentation = array_values(array_diff($existingDocumentation, $requestedRemoval));
-        $uploadedPaths = [];
-        $oldPhoto = null;
+    public function update(
+        SalesProfileRequest $request,
+        SalesProfile $sale,
+        SalesProfileService $profiles,
+    ): RedirectResponse {
+        DB::transaction(function () use ($request, $sale, $profiles): void {
+            $owner = $sale->user ?: $this->createAccountWhenRequested($request);
 
-        try {
-            if ($request->hasFile('photo')) {
-                $data['photo'] = $request->file('photo')->store('sales_photos', 'public');
-                $uploadedPaths[] = $data['photo'];
-                $oldPhoto = $sale->photo;
-            } elseif ($request->boolean('remove_photo') && $sale->photo) {
-                $data['photo'] = null;
-                $oldPhoto = $sale->photo;
+            if ($owner) {
+                $owner->forceFill([
+                    'name' => $request->validated('name'),
+                    'email' => $request->validated('account_email'),
+                    'is_sales' => $request->boolean('account_enabled'),
+                    'email_verified_at' => $owner->email_verified_at ?? now(),
+                ]);
+
+                if ($request->filled('account_password')) {
+                    $owner->password = $request->validated('account_password');
+                }
+
+                $owner->save();
             }
 
-            $newDocumentation = $this->storeDocumentationPhotos($request, $uploadedPaths);
-            $data['documentation_photos'] = [...$remainingDocumentation, ...$newDocumentation];
-            $sale->update($data);
-        } catch (Throwable $exception) {
-            Storage::disk('public')->delete($uploadedPaths);
-
-            throw $exception;
-        }
-
-        Storage::disk('public')->delete(array_filter([$oldPhoto, ...$requestedRemoval]));
+            $profiles->save($sale, $request, $owner);
+        });
 
         return to_route('admin.sales.index')->with('success', 'Profil sales berhasil diperbarui.');
     }
 
-    public function destroy(SalesProfile $sale): RedirectResponse
+    public function destroy(SalesProfile $sale, SalesProfileService $profiles): RedirectResponse
     {
-        $storedFiles = array_filter([
-            $sale->photo,
-            ...($sale->documentation_photos ?? []),
-        ]);
+        $owner = $sale->user;
 
-        $sale->delete();
-        Storage::disk('public')->delete($storedFiles);
+        DB::transaction(function () use ($owner, $profiles, $sale): void {
+            if ($owner) {
+                $owner->forceFill(['is_sales' => false])->save();
+            }
 
-        return to_route('admin.sales.index')->with('success', 'Profil sales berhasil dihapus.');
+            $profiles->delete($sale);
+        });
+
+        return to_route('admin.sales.index')->with('success', 'Profil sales dihapus dan akses akunnya dinonaktifkan.');
     }
 
-    private function profileData(array $validated): array
+    private function createAccountWhenRequested(SalesProfileRequest $request): ?User
     {
-        $data = Arr::except($validated, [
-            'photo',
-            'documentation_photos',
-            'remove_photo',
-            'remove_documentation_photos',
-        ]);
-
-        $data['whatsapp'] = $data['whatsapp_number'] ?? null;
-        $data['facebook'] = $data['facebook_link'] ?? null;
-        $data['instagram'] = $data['instagram_link'] ?? null;
-
-        return $data;
-    }
-
-    private function storeDocumentationPhotos(SalesProfileRequest $request, array &$uploadedPaths): array
-    {
-        $paths = [];
-
-        foreach ($request->file('documentation_photos', []) as $photo) {
-            $path = $photo->store('sales_docs', 'public');
-            $paths[] = $path;
-            $uploadedPaths[] = $path;
+        if (! $request->filled('account_email')) {
+            return null;
         }
 
-        return $paths;
-    }
+        $user = new User([
+            'name' => $request->validated('name'),
+            'email' => $request->validated('account_email'),
+            'password' => $request->validated('account_password'),
+        ]);
+        $user->forceFill([
+            'is_sales' => $request->boolean('account_enabled'),
+            'email_verified_at' => now(),
+        ])->save();
 
-    private function uniqueSlug(string $name): string
-    {
-        $baseSlug = Str::slug($name) ?: 'sales';
-        $slug = $baseSlug;
-        $suffix = 2;
-
-        while (SalesProfile::query()->where('slug', $slug)->exists()) {
-            $slug = "{$baseSlug}-{$suffix}";
-            $suffix++;
-        }
-
-        return $slug;
+        return $user;
     }
 }
