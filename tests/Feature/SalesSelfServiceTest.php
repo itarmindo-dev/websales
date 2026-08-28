@@ -22,6 +22,10 @@ class SalesSelfServiceTest extends TestCase
             ->get(route('sales.self.edit'))
             ->assertOk()
             ->assertSee('Profil Anda belum dipublikasikan')
+            ->assertSee('name="slug"', false)
+            ->assertSee('name="intro_eyebrow"', false)
+            ->assertSee('name="intro_title"', false)
+            ->assertSee('name="intro_emphasis"', false)
             ->assertDontSee('Akun login sales');
 
         $this->actingAs($salesUser)->patch(route('sales.self.update'), [
@@ -30,6 +34,9 @@ class SalesSelfServiceTest extends TestCase
             'tagline' => 'HINO Sales Executive',
             'specialties' => 'HINO 300',
             'bio' => 'Membantu pelanggan memilih unit sesuai kebutuhan usaha.',
+            'intro_eyebrow' => 'Pendekatan Rina',
+            'intro_title' => 'Bukan hanya membeli unit.',
+            'intro_emphasis' => 'Menyiapkan usaha untuk terus bergerak.',
             'photo' => UploadedFile::fake()->image('rina.jpg', 500, 500),
             'sections' => [
                 [
@@ -54,17 +61,46 @@ class SalesSelfServiceTest extends TestCase
         $this->get(route('sales.profile', $profile->slug))
             ->assertOk()
             ->assertSee('Rina HINO')
+            ->assertSee('Pendekatan Rina')
+            ->assertSee('Bukan hanya membeli unit.')
+            ->assertSee('Menyiapkan usaha untuk terus bergerak.')
             ->assertSee('Prinsip layanan Rina');
 
         $this->actingAs($salesUser)->patch(route('sales.self.update'), [
             'name' => 'Rina HINO Updated',
+            'slug' => 'Rina HINO Tangerang',
             'whatsapp_number' => '081234567891',
+            'intro_eyebrow' => 'Konsultasi armada',
+            'intro_title' => 'Pilihan yang tepat dimulai dari kebutuhan.',
+            'intro_emphasis' => 'Armada disusun agar bisnis terus bekerja.',
             'remove_photo' => '1',
         ])->assertRedirect(route('sales.self.edit'));
 
         $profile->refresh();
         $this->assertSame('Rina HINO Updated', $profile->name);
+        $this->assertSame('rina-hino-tangerang', $profile->slug);
+        $this->assertSame('Konsultasi armada', $profile->intro_eyebrow);
+        $this->assertSame('Pilihan yang tepat dimulai dari kebutuhan.', $profile->intro_title);
+        $this->assertSame('Armada disusun agar bisnis terus bekerja.', $profile->intro_emphasis);
         $this->assertNull($profile->photo);
+        $this->get('/sales/rina-hino')->assertNotFound();
+        $this->get('/sales/rina-hino-tangerang')->assertOk();
+
+        SalesProfile::query()->create([
+            'slug' => 'slug-sales-lain',
+            'name' => 'Sales Lain',
+        ]);
+
+        $this->actingAs($salesUser)
+            ->from(route('sales.self.edit'))
+            ->patch(route('sales.self.update'), [
+                'name' => 'Rina HINO Updated',
+                'slug' => 'slug-sales-lain',
+            ])
+            ->assertRedirect(route('sales.self.edit'))
+            ->assertSessionHasErrors('slug');
+
+        $this->assertSame('rina-hino-tangerang', $profile->fresh()->slug);
     }
 
     public function test_sales_cannot_access_admin_data_or_delete_their_account(): void

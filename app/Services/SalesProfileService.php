@@ -27,7 +27,9 @@ class SalesProfileService
         $uploadedPaths = [];
         $filesToDelete = $requestedRemoval;
 
-        if (! $profile->exists) {
+        if (filled($validated['slug'] ?? null)) {
+            $data['slug'] = $validated['slug'];
+        } elseif (! $profile->exists) {
             $data['slug'] = $this->uniqueSlug($data['name']);
         }
 
@@ -98,6 +100,7 @@ class SalesProfileService
             'account_password',
             'account_password_confirmation',
             'account_enabled',
+            'slug',
             'sections',
         ]);
 

@@ -24,6 +24,9 @@ class SalesProfileSeederTest extends TestCase
 
         $this->assertSame('budi.sales@example.test', $profile->user->email);
         $this->assertSame('HINO Sales Executive', $profile->tagline);
+        $this->assertSame('Pendekatan konsultatif', $profile->intro_eyebrow);
+        $this->assertSame('Bukan sekadar memilih truk.', $profile->intro_title);
+        $this->assertSame('Menyusun armada yang bekerja.', $profile->intro_emphasis);
         $this->assertNotEmpty($profile->phone);
         $this->assertNotEmpty($profile->whatsapp_number);
         $this->assertNotEmpty($profile->bio);

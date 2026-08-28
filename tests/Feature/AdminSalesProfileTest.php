@@ -196,6 +196,47 @@ class AdminSalesProfileTest extends TestCase
         $this->assertDatabaseMissing('sales_profiles', ['id' => $sale->id]);
     }
 
+    public function test_admin_can_change_profile_url_and_duplicate_slug_is_rejected(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $sale = SalesProfile::query()->create([
+            'slug' => 'tes',
+            'name' => 'Muhammad Habib Amrullah',
+        ]);
+        SalesProfile::query()->create([
+            'slug' => 'url-sales-lain',
+            'name' => 'Sales Lain',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.sales.edit', $sale))
+            ->assertOk()
+            ->assertSee('name="slug"', false)
+            ->assertSee('value="tes"', false);
+
+        $this->actingAs($admin)->patch(route('admin.sales.update', $sale), [
+            'name' => 'Muhammad Habib Amrullah',
+            'slug' => 'Muhammad Habib Amrullah',
+            'account_enabled' => '0',
+        ])->assertRedirect(route('admin.sales.index'));
+
+        $this->assertSame('muhammad-habib-amrullah', $sale->fresh()->slug);
+        $this->get('/sales/tes')->assertNotFound();
+        $this->get('/sales/muhammad-habib-amrullah')->assertOk();
+
+        $this->actingAs($admin)
+            ->from(route('admin.sales.edit', $sale))
+            ->patch(route('admin.sales.update', $sale), [
+                'name' => 'Muhammad Habib Amrullah',
+                'slug' => 'url-sales-lain',
+                'account_enabled' => '0',
+            ])
+            ->assertRedirect(route('admin.sales.edit', $sale))
+            ->assertSessionHasErrors('slug');
+
+        $this->assertSame('muhammad-habib-amrullah', $sale->fresh()->slug);
+    }
+
     public function test_public_sales_page_only_renders_active_sections_and_safe_video_embed(): void
     {
         $sale = SalesProfile::query()->create([
@@ -224,6 +265,10 @@ class AdminSalesProfileTest extends TestCase
             ->assertOk()
             ->assertSee('Video aktif')
             ->assertSee('https://www.youtube-nocookie.com/embed/abcdefghijk', false)
+            ->assertSee('sales-intro--copy-only', false)
+            ->assertDontSee('Pendekatan konsultatif')
+            ->assertDontSee('Bukan sekadar memilih truk.')
+            ->assertDontSee('Menyusun armada yang bekerja.')
             ->assertDontSee('Section nonaktif');
     }
 

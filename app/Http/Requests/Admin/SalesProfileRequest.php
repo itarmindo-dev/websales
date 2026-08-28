@@ -21,6 +21,7 @@ class SalesProfileRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $whatsapp = preg_replace('/\D+/', '', (string) $this->input('whatsapp_number'));
+        $slug = Str::slug((string) $this->input('slug'));
 
         if (str_starts_with($whatsapp, '0')) {
             $whatsapp = '62'.substr($whatsapp, 1);
@@ -28,6 +29,7 @@ class SalesProfileRequest extends FormRequest
 
         $this->merge([
             'name' => trim((string) $this->input('name')),
+            'slug' => $slug !== '' ? $slug : null,
             'phone' => $this->trimNullable('phone'),
             'whatsapp_number' => $whatsapp !== '' ? $whatsapp : null,
             'facebook_link' => $this->trimNullable('facebook_link'),
@@ -38,6 +40,9 @@ class SalesProfileRequest extends FormRequest
             'bio' => $this->trimNullable('bio'),
             'hero_title' => $this->trimNullable('hero_title'),
             'hero_description' => $this->trimNullable('hero_description'),
+            'intro_eyebrow' => $this->trimNullable('intro_eyebrow'),
+            'intro_title' => $this->trimNullable('intro_title'),
+            'intro_emphasis' => $this->trimNullable('intro_emphasis'),
             'footer_title' => $this->trimNullable('footer_title'),
             'footer_description' => $this->trimNullable('footer_description'),
             'account_email' => $this->input('account_email')
@@ -49,8 +54,21 @@ class SalesProfileRequest extends FormRequest
 
     public function rules(): array
     {
+        $sale = $this->route('sale');
+
+        if (! $sale && $this->routeIs('sales.self.*')) {
+            $sale = $this->user()?->salesProfile()->first();
+        }
+
         $rules = [
             'name' => ['required', 'string', 'max:255'],
+            'slug' => [
+                $sale ? 'required' : 'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('sales_profiles', 'slug')->ignore($sale?->id),
+            ],
             'phone' => ['nullable', 'string', 'max:30'],
             'whatsapp_number' => ['nullable', 'digits_between:8,16'],
             'facebook_link' => ['nullable', 'url:http,https', 'max:255'],
@@ -62,6 +80,9 @@ class SalesProfileRequest extends FormRequest
             'photo' => ['nullable', File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max('2mb')],
             'hero_title' => ['nullable', 'string', 'max:160'],
             'hero_description' => ['nullable', 'string', 'max:600'],
+            'intro_eyebrow' => ['nullable', 'string', 'max:80'],
+            'intro_title' => ['nullable', 'string', 'max:180'],
+            'intro_emphasis' => ['nullable', 'string', 'max:180'],
             'footer_title' => ['nullable', 'string', 'max:160'],
             'footer_description' => ['nullable', 'string', 'max:600'],
             'hero_image' => ['nullable', File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max('5mb')],
@@ -93,7 +114,6 @@ class SalesProfileRequest extends FormRequest
         ];
 
         if ($this->user()?->can('access-admin')) {
-            $sale = $this->route('sale');
             $ownerId = $sale?->user_id;
 
             $rules['account_email'] = [
@@ -117,6 +137,8 @@ class SalesProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'slug.regex' => 'URL profil hanya boleh berisi huruf kecil, angka, dan tanda hubung.',
+            'slug.unique' => 'URL profil tersebut sudah digunakan oleh sales lain.',
             'whatsapp_number.digits_between' => 'Nomor WhatsApp harus berisi 8 sampai 16 digit.',
             'documentation_photos.max' => 'Maksimal 10 foto dokumentasi dapat diunggah sekaligus.',
             'sections.max' => 'Maksimal 20 section dapat ditambahkan ke landing page sales.',

@@ -33,6 +33,10 @@
     $heroTitle = $sale->hero_title ?: 'Armada tepat untuk perjalanan bisnis yang lebih jauh.';
     $heroDescription = $sale->hero_description
         ?: ($sale->slogan ?: 'Konsultasi unit, informasi stok, dan pendampingan pembelian HINO yang disusun sesuai kebutuhan operasional Anda.');
+    $introEyebrow = $sale->intro_eyebrow;
+    $introTitle = $sale->intro_title;
+    $introEmphasis = $sale->intro_emphasis;
+    $hasIntroHeading = filled($introEyebrow) || filled($introTitle) || filled($introEmphasis);
     $footerTitle = $sale->footer_title ?: 'Mari susun armada yang siap bekerja.';
     $footerDescription = $sale->footer_description
         ?: 'Ceritakan muatan, rute, dan target usaha Anda. Konsultasi pertama dapat dimulai langsung melalui WhatsApp.';
@@ -101,12 +105,25 @@
                 </div>
             </section>
 
-            <section id="tentang" class="sales-intro">
+            <section id="tentang" class="sales-intro {{ $hasIntroHeading ? '' : 'sales-intro--copy-only' }}">
                 <div class="sales-section-index" aria-hidden="true">01</div>
-                <div class="sales-intro-heading">
-                    <p class="sales-kicker sales-kicker--dark">Pendekatan konsultatif</p>
-                    <h2>Bukan sekadar memilih truk. <em>Menyusun armada yang bekerja.</em></h2>
-                </div>
+                @if ($hasIntroHeading)
+                    <div class="sales-intro-heading">
+                        @if ($introEyebrow)
+                        <p class="sales-kicker sales-kicker--dark">{{ $introEyebrow }}</p>
+                        @endif
+                        @if ($introTitle || $introEmphasis)
+                            <h2>
+                                @if ($introTitle)
+                                    {{ $introTitle }}
+                                @endif
+                                @if ($introEmphasis)
+                                    <em>{{ $introEmphasis }}</em>
+                                @endif
+                            </h2>
+                        @endif
+                    </div>
+                @endif
                 <div class="sales-intro-copy">
                     <p class="sales-lead">{{ $sale->bio ?: 'Saya membantu Anda memilih unit HINO berdasarkan kebutuhan usaha, karakter muatan, rute, dan pola operasional sehari-hari.' }}</p>
                     <dl class="sales-contact-list">
@@ -250,7 +267,7 @@
                     <div class="sales-social-links">
                         @if ($instagramUrl)<a href="{{ $instagramUrl }}" target="_blank" rel="noopener noreferrer">Instagram</a>@endif
                         @if ($facebookUrl)<a href="{{ $facebookUrl }}" target="_blank" rel="noopener noreferrer">Facebook</a>@endif
-                        <a href="{{ route('home') }}">Website utama</a>
+                        <a href="{{ route('home', ['sales' => $sale->slug]) }}#tco">Website Utama</a>
                     </div>
                 </div>
             </section>

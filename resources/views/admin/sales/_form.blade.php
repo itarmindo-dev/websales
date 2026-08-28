@@ -62,6 +62,24 @@
                 <input id="name" name="name" type="text" value="{{ old('name', $sale?->name) }}" required maxlength="255" class="{{ $inputClass }}">
                 <x-input-error :messages="$errors->get('name')" class="mt-2" />
             </div>
+            <div class="sm:col-span-2">
+                <label for="slug" class="{{ $labelClass }}">URL profil {{ $sale ? '' : '(opsional)' }}</label>
+                <div class="mt-1 flex rounded-lg shadow-sm">
+                    <span class="inline-flex items-center rounded-s-lg border border-e-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">{{ url('/sales') }}/</span>
+                    <input
+                        id="slug"
+                        name="slug"
+                        type="text"
+                        value="{{ old('slug', $sale?->slug) }}"
+                        maxlength="255"
+                        placeholder="{{ $sale ? '' : 'otomatis-dari-nama' }}"
+                        @required($sale)
+                        class="block min-w-0 flex-1 rounded-none rounded-e-lg border-gray-300 focus:border-green-600 focus:ring-green-600"
+                    >
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Gunakan huruf, angka, dan tanda hubung. Mengganti bagian ini akan menonaktifkan URL profil yang lama.</p>
+                <x-input-error :messages="$errors->get('slug')" class="mt-2" />
+            </div>
             <div>
                 <label for="tagline" class="{{ $labelClass }}">Jabatan atau tagline</label>
                 <input id="tagline" name="tagline" type="text" value="{{ old('tagline', $sale?->tagline) }}" maxlength="255" placeholder="Contoh: HINO Sales Executive" class="{{ $inputClass }}">
@@ -84,7 +102,7 @@
 
     <section class="border-t border-gray-200 pt-8" aria-labelledby="landing-heading">
         <h2 id="landing-heading" class="text-base font-semibold text-gray-900">Teks landing page</h2>
-        <p class="mt-1 text-sm leading-6 text-gray-500">Kosongkan untuk memakai teks bawaan yang mengikuti nama dan profil sales.</p>
+        <p class="mt-1 text-sm leading-6 text-gray-500">Judul hero dan bagian bawah yang kosong memakai teks bawaan. Teks pendekatan yang kosong tidak akan ditampilkan.</p>
         <div class="mt-4 grid gap-5 sm:grid-cols-2">
             <div class="sm:col-span-2">
                 <label for="hero_title" class="{{ $labelClass }}">Judul hero</label>
@@ -93,6 +111,24 @@
             <div class="sm:col-span-2">
                 <label for="hero_description" class="{{ $labelClass }}">Deskripsi hero</label>
                 <textarea id="hero_description" name="hero_description" rows="3" maxlength="600" class="{{ $inputClass }}">{{ old('hero_description', $sale?->hero_description) }}</textarea>
+            </div>
+            <div class="sm:col-span-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <h3 class="text-sm font-semibold text-gray-900">Bagian pendekatan konsultatif</h3>
+                <p class="mt-1 text-xs leading-5 text-gray-500">Kalimat aksen tetap ditampilkan dengan gaya miring. Kosongkan field yang tidak ingin ditampilkan.</p>
+                <div class="mt-4 grid gap-5 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
+                        <label for="intro_eyebrow" class="{{ $labelClass }}">Label pendekatan</label>
+                        <input id="intro_eyebrow" name="intro_eyebrow" type="text" value="{{ old('intro_eyebrow', $sale?->intro_eyebrow) }}" maxlength="80" placeholder="Pendekatan konsultatif" class="{{ $inputClass }}">
+                    </div>
+                    <div>
+                        <label for="intro_title" class="{{ $labelClass }}">Judul utama</label>
+                        <textarea id="intro_title" name="intro_title" rows="3" maxlength="180" placeholder="Bukan sekadar memilih truk." class="{{ $inputClass }}">{{ old('intro_title', $sale?->intro_title) }}</textarea>
+                    </div>
+                    <div>
+                        <label for="intro_emphasis" class="{{ $labelClass }}">Kalimat aksen</label>
+                        <textarea id="intro_emphasis" name="intro_emphasis" rows="3" maxlength="180" placeholder="Menyusun armada yang bekerja." class="{{ $inputClass }}">{{ old('intro_emphasis', $sale?->intro_emphasis) }}</textarea>
+                    </div>
+                </div>
             </div>
             <div class="sm:col-span-2">
                 <label for="footer_title" class="{{ $labelClass }}">Judul ajakan bagian bawah</label>

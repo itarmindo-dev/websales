@@ -391,6 +391,15 @@ html {
     padding-top: 3rem;
 }
 
+.sales-intro--copy-only {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.sales-intro--copy-only .sales-intro-copy {
+    max-width: 760px;
+    padding-top: 0;
+}
+
 .sales-lead {
     margin: 0;
     color: #344e5a;
