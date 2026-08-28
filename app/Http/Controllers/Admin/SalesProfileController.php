@@ -37,7 +37,7 @@ class SalesProfileController extends Controller
 
     public function edit(SalesProfile $sale): View
     {
-        $sale->load('user');
+        $sale->load(['user', 'sections']);
 
         return view('admin.sales.edit', compact('sale'));
     }

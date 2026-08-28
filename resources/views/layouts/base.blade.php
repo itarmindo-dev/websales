@@ -2,6 +2,7 @@
 <html lang="en" @yield('html-attributes')>
 
 <head>
+    @include('layouts.partials.google-tag-manager-head')
     @include('layouts.partials.title-meta')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -23,6 +24,7 @@
 </head>
 
 <body @yield('body-attributes')>
+    @include('layouts.partials.google-tag-manager-body')
 
     @include('layouts.partials.loader')
 

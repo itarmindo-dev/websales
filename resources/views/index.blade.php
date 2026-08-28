@@ -118,7 +118,14 @@
                         </a>
                     </div>
 
-                    <div id="tco-calculator-app" class="tco-app-shell" data-submit-url="{{ route('tco.submit') }}" aria-live="polite"></div>
+                    <div
+                        id="tco-calculator-app"
+                        class="tco-app-shell"
+                        data-submit-url="{{ route('tco.submit') }}"
+                        data-sales-slug="{{ $salesSource?->slug }}"
+                        data-sales-name="{{ $salesSource?->name }}"
+                        aria-live="polite"
+                    ></div>
                 </div>
             </section>
         @endif

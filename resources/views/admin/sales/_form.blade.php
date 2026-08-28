@@ -82,6 +82,29 @@
         </div>
     </section>
 
+    <section class="border-t border-gray-200 pt-8" aria-labelledby="landing-heading">
+        <h2 id="landing-heading" class="text-base font-semibold text-gray-900">Teks landing page</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-500">Kosongkan untuk memakai teks bawaan yang mengikuti nama dan profil sales.</p>
+        <div class="mt-4 grid gap-5 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+                <label for="hero_title" class="{{ $labelClass }}">Judul hero</label>
+                <input id="hero_title" name="hero_title" type="text" value="{{ old('hero_title', $sale?->hero_title) }}" maxlength="160" placeholder="Armada tepat untuk perjalanan bisnis yang lebih jauh" class="{{ $inputClass }}">
+            </div>
+            <div class="sm:col-span-2">
+                <label for="hero_description" class="{{ $labelClass }}">Deskripsi hero</label>
+                <textarea id="hero_description" name="hero_description" rows="3" maxlength="600" class="{{ $inputClass }}">{{ old('hero_description', $sale?->hero_description) }}</textarea>
+            </div>
+            <div class="sm:col-span-2">
+                <label for="footer_title" class="{{ $labelClass }}">Judul ajakan bagian bawah</label>
+                <input id="footer_title" name="footer_title" type="text" value="{{ old('footer_title', $sale?->footer_title) }}" maxlength="160" placeholder="Mari susun armada yang siap bekerja" class="{{ $inputClass }}">
+            </div>
+            <div class="sm:col-span-2">
+                <label for="footer_description" class="{{ $labelClass }}">Deskripsi ajakan bagian bawah</label>
+                <textarea id="footer_description" name="footer_description" rows="3" maxlength="600" class="{{ $inputClass }}">{{ old('footer_description', $sale?->footer_description) }}</textarea>
+            </div>
+        </div>
+    </section>
+
     <section class="border-t border-gray-200 pt-8" aria-labelledby="contact-heading">
         <h2 id="contact-heading" class="text-base font-semibold text-gray-900">Kontak</h2>
         <div class="mt-4 grid gap-5 sm:grid-cols-2">
@@ -123,6 +146,32 @@
                 <p class="mt-1 text-xs text-gray-500">JPG, PNG, atau WebP. Maksimal 2 MB.</p>
             </div>
 
+            <div class="grid gap-6 sm:grid-cols-2">
+                @foreach ([
+                    ['field' => 'hero_image', 'label' => 'Gambar hero', 'fallback' => 'img/slider/herosales.png'],
+                    ['field' => 'footer_image', 'label' => 'Gambar bagian bawah', 'fallback' => 'img/slider/footersales.png'],
+                ] as $landingImage)
+                    @php
+                        $currentLandingImage = $sale?->{$landingImage['field']};
+                        $landingImageUrl = $currentLandingImage
+                            ? $sale->mediaUrl($currentLandingImage)
+                            : asset($landingImage['fallback']);
+                    @endphp
+                    <div>
+                        <label for="{{ $landingImage['field'] }}" class="{{ $labelClass }}">{{ $landingImage['label'] }}</label>
+                        <img src="{{ $landingImageUrl }}" alt="Preview {{ strtolower($landingImage['label']) }}" class="mt-2 aspect-video w-full rounded-lg border border-gray-200 object-cover">
+                        @if ($currentLandingImage)
+                            <label class="mt-2 flex items-center gap-2 text-sm text-gray-700">
+                                <input type="checkbox" name="remove_{{ $landingImage['field'] }}" value="1" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                Gunakan kembali gambar bawaan
+                            </label>
+                        @endif
+                        <input id="{{ $landingImage['field'] }}" name="{{ $landingImage['field'] }}" type="file" accept="image/jpeg,image/png,image/webp" class="mt-3 block w-full text-sm text-gray-600 file:me-3 file:rounded-lg file:border-0 file:bg-green-50 file:px-3 file:py-2 file:font-semibold file:text-green-800 hover:file:bg-green-100">
+                        <p class="mt-1 text-xs text-gray-500">Gambar bawaan: {{ basename($landingImage['fallback']) }}. Maksimal 5 MB.</p>
+                    </div>
+                @endforeach
+            </div>
+
             @if ($sale?->documentation_photos)
                 <fieldset>
                     <legend class="{{ $labelClass }}">Dokumentasi saat ini</legend>
@@ -147,6 +196,8 @@
             </div>
         </div>
     </section>
+
+    @include('admin.sales._section-builder', ['sale' => $sale])
 </div>
 
 <div class="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row sm:justify-end sm:px-8">

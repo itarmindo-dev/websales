@@ -12,7 +12,7 @@
     </x-slot>
 
     <div class="min-h-[calc(100vh-8rem)] bg-gray-50 py-8">
-        <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             @if (session('success'))
                 <div class="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">{{ session('success') }}</div>
             @endif

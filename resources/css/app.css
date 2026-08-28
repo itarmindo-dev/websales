@@ -1,3 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+.brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.brand-lockup__hino,
+.brand-lockup__armindo {
+    display: block;
+    height: auto;
+    max-height: 100%;
+    flex: none;
+    object-fit: contain;
+}
+
+.brand-lockup__hino {
+    width: 60%;
+}
+
+.brand-lockup__armindo {
+    width: 25%;
+}
+
+.brand-lockup__divider {
+    width: 1px;
+    height: 62%;
+    flex: none;
+    background: #cbd5e1;
+}
+
+.brand-lockup--inverted .brand-lockup__hino {
+    filter: brightness(0) invert(1);
+}
+
+.brand-lockup--inverted .brand-lockup__divider {
+    background: rgba(255, 255, 255, 0.5);
+}

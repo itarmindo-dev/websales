@@ -8,7 +8,7 @@
         <div class="flex h-16 justify-between">
             <div class="flex min-w-0">
                 <a href="{{ $currentUser->is_admin ? route('dashboard') : route('sales.self.edit') }}" class="flex shrink-0 items-center" aria-label="Panel Armindo Perkasa">
-                    <x-application-logo class="h-9 w-32" />
+                    <x-application-logo class="h-10 w-44" />
                 </a>
 
                 <div class="hidden space-x-8 sm:ms-10 sm:flex">

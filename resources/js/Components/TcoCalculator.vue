@@ -6,6 +6,7 @@
       <div>
         <strong id="calculator-title">Kalkulator TCO</strong>
         <small>Total Cost of Ownership</small>
+        <small v-if="salesName" class="calculator-sales-source">Referensi sales: {{ salesName }}</small>
       </div>
     </header>
 
@@ -290,6 +291,14 @@ export default {
       type: String,
       default: '/tco/submit',
     },
+    salesSlug: {
+      type: String,
+      default: '',
+    },
+    salesName: {
+      type: String,
+      default: '',
+    },
   },
 
   data() {
@@ -477,6 +486,7 @@ export default {
         tipe_unit: this.form.truckSeries,
         kategori_model: this.form.modelKey,
         kondisi_jalan: this.selectedRoadLabel,
+        sales_slug: this.salesSlug || null,
       }
     },
 
@@ -537,6 +547,12 @@ export default {
 .calculator-header strong,
 .calculator-header small {
   display: block;
+}
+
+.calculator-header .calculator-sales-source {
+  margin-top: 5px;
+  color: #087443;
+  font-weight: 700;
 }
 
 .calculator-header strong {

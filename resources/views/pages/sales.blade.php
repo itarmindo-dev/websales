@@ -1,155 +1,264 @@
 @php
-    $whatsapp = preg_replace('/\D+/', '', (string) ($sale->whatsapp_number ?? $sale->whatsapp));
-    $whatsappMessage = rawurlencode("Halo {$sale->name}, saya ingin berkonsultasi mengenai unit HINO.");
+    $salesWhatsapp = preg_replace('/\D+/', '', (string) ($sale->whatsapp_number ?? $sale->whatsapp));
+    $dealerWhatsapp = preg_replace('/\D+/', '', (string) $defaultWhatsapp);
+    $whatsapp = $salesWhatsapp ?: $dealerWhatsapp;
+    $usesDealerWhatsapp = ! $salesWhatsapp && (bool) $dealerWhatsapp;
+    $whatsappMessage = rawurlencode($usesDealerWhatsapp
+        ? "Halo Armindo Perkasa, saya membuka profil sales {$sale->name} dan ingin berkonsultasi mengenai unit HINO."
+        : "Halo {$sale->name}, saya ingin berkonsultasi mengenai unit HINO.");
+    $whatsappUrl = $whatsapp ? "https://wa.me/{$whatsapp}?text={$whatsappMessage}" : null;
     $facebookUrl = Str::startsWith((string) ($sale->facebook_link ?? $sale->facebook), ['http://', 'https://'])
         ? ($sale->facebook_link ?? $sale->facebook)
         : null;
     $instagramUrl = Str::startsWith((string) ($sale->instagram_link ?? $sale->instagram), ['http://', 'https://'])
         ? ($sale->instagram_link ?? $sale->instagram)
         : null;
+    $profileImage = $sale->mediaUrl($sale->photo);
+    if ($sale->photo && ! $profileImage) {
+        $profileImage = asset('img/team/ca-team-iner1.2.png');
+    }
+    $heroImage = $sale->mediaUrl($sale->hero_image) ?: asset('img/slider/herosales.png');
+    $footerImage = $sale->mediaUrl($sale->footer_image) ?: asset('img/slider/footersales.png');
+    $documentationImages = collect($sale->documentation_photos ?? [])
+        ->map(fn (string $path) => $sale->mediaUrl($path))
+        ->filter()
+        ->values();
+    if (filled($sale->documentation_photos) && $documentationImages->isEmpty()) {
+        $documentationImages = collect([
+            asset('img/portfolio/portfolio-big-1.3.png'),
+            asset('img/portfolio/ca-project3.3.png'),
+            asset('img/portfolio/ca-project3.4.png'),
+        ]);
+    }
+    $heroTitle = $sale->hero_title ?: 'Armada tepat untuk perjalanan bisnis yang lebih jauh.';
+    $heroDescription = $sale->hero_description
+        ?: ($sale->slogan ?: 'Konsultasi unit, informasi stok, dan pendampingan pembelian HINO yang disusun sesuai kebutuhan operasional Anda.');
+    $footerTitle = $sale->footer_title ?: 'Mari susun armada yang siap bekerja.';
+    $footerDescription = $sale->footer_description
+        ?: 'Ceritakan muatan, rute, dan target usaha Anda. Konsultasi pertama dapat dimulai langsung melalui WhatsApp.';
+    $hasWork = $sale->sections->isNotEmpty() || $documentationImages->isNotEmpty();
 @endphp
 
 <x-layouts.sales
     :title="$sale->name.' - Sales HINO Armindo Perkasa'"
     :description="'Hubungi '.$sale->name.' untuk konsultasi unit HINO Armindo Perkasa.'"
 >
-    <header class="border-b border-gray-200 bg-white">
-        <nav class="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8" aria-label="Navigasi utama">
-            <a href="{{ route('home') }}" aria-label="Kembali ke beranda Armindo Perkasa">
-                <img src="{{ asset('img/logo/logohinopth.png') }}" alt="HINO" class="h-10 w-36 object-contain">
+    <div class="sales-page">
+        <header class="sales-header">
+            <a href="{{ route('home') }}" class="sales-brand" aria-label="Kembali ke beranda Armindo Perkasa">
+                <x-application-logo inverted class="sales-brand-lockup" />
             </a>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('home') }}#models" class="hidden text-sm font-semibold text-gray-700 hover:text-green-800 sm:inline">Model Truk</a>
-                @if ($whatsapp)
-                    <a href="https://wa.me/{{ $whatsapp }}?text={{ $whatsappMessage }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-full bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2">
-                        Hubungi Sales
-                    </a>
+
+            <nav class="sales-nav" aria-label="Navigasi profil sales">
+                <a href="#tentang">Tentang</a>
+                @if ($hasWork)
+                    <a href="#cerita">Cerita</a>
                 @endif
-            </div>
-        </nav>
-    </header>
+                <a href="#kontak">Kontak</a>
+            </nav>
 
-    <main>
-        <section class="overflow-hidden bg-gradient-to-br from-green-950 via-green-900 to-green-700 text-white">
-            <div class="mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 md:grid-cols-[minmax(0,1fr)_340px] md:py-20 lg:px-8">
-                <div>
-                    <p class="text-sm font-semibold uppercase tracking-[0.16em] text-green-200">Sales resmi HINO Armindo Perkasa</p>
-                    <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">{{ $sale->name }}</h1>
-                    <p class="mt-3 text-lg font-medium text-green-100">{{ $sale->tagline ?: 'Siap membantu kebutuhan armada bisnis Anda' }}</p>
-                    @if ($sale->specialties)
-                        <p class="mt-5 inline-flex rounded-full border border-green-300/30 bg-white/10 px-4 py-2 text-sm text-green-50">Spesialisasi: {{ $sale->specialties }}</p>
-                    @endif
-                    <p class="mt-6 max-w-2xl text-base leading-7 text-green-50/90">{{ $sale->slogan ?: 'Dapatkan informasi unit, ketersediaan stok, dan konsultasi sesuai kebutuhan operasional bisnis Anda.' }}</p>
+            @if ($whatsappUrl)
+                <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener noreferrer" class="sales-nav-cta">
+                    <span>Mulai konsultasi</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+                </a>
+            @endif
+        </header>
 
-                    <div class="mt-8 flex flex-wrap gap-3">
-                        @if ($whatsapp)
-                            <a href="https://wa.me/{{ $whatsapp }}?text={{ $whatsappMessage }}" target="_blank" rel="noopener noreferrer" class="inline-flex rounded-lg bg-white px-5 py-3 text-sm font-semibold text-green-900 transition hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-green-900">
-                                Chat WhatsApp
-                            </a>
+        <main>
+            <section class="sales-hero" style="--sales-hero-image: url('{{ $heroImage }}')">
+                <div class="sales-hero-orbit" aria-hidden="true"></div>
+                <div class="sales-hero-word" aria-hidden="true">MELAJU</div>
+
+                <div class="sales-hero-copy">
+                    <p class="sales-kicker">Sales resmi HINO <span></span> Armindo Perkasa</p>
+                    <h1>{{ $heroTitle }}</h1>
+                    <p class="sales-hero-description">{{ $heroDescription }}</p>
+                    <div class="sales-hero-actions">
+                        @if ($whatsappUrl)
+                            <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener noreferrer" class="sales-button sales-button--solid">Chat WhatsApp</a>
                         @endif
-                        <a href="{{ route('home') }}#tco" class="inline-flex rounded-lg border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-green-900">
-                            Buka Kalkulator TCO
-                        </a>
+                        <a href="{{ route('home', ['sales' => $sale->slug]) }}#tco" class="sales-button sales-button--ghost">Kalkulator TCO</a>
                     </div>
                 </div>
 
-                <div class="mx-auto w-full max-w-sm">
-                    @if ($sale->photo)
-                        <img src="{{ $sale->mediaUrl($sale->photo) }}" alt="Foto {{ $sale->name }}" class="aspect-square w-full rounded-3xl border-4 border-white/20 object-cover shadow-2xl">
+                <aside class="sales-person" aria-label="Profil {{ $sale->name }}">
+                    @if ($profileImage)
+                        <img src="{{ $profileImage }}" alt="Foto {{ $sale->name }}">
                     @else
-                        <div class="grid aspect-square w-full place-items-center rounded-3xl border-4 border-white/20 bg-white/10 text-7xl font-semibold text-white shadow-2xl">
-                            {{ Str::upper(Str::substr($sale->name, 0, 1)) }}
-                        </div>
+                        <span class="sales-person-initial">{{ Str::upper(Str::substr($sale->name, 0, 1)) }}</span>
                     @endif
+                    <div>
+                        <p>{{ $sale->name }}</p>
+                        <span>{{ $sale->tagline ?: 'HINO Sales Executive' }}</span>
+                    </div>
+                </aside>
+
+                <div class="sales-hero-foot">
+                    <span>01 / Profil</span>
+                    <span>{{ $sale->specialties ?: 'Konsultasi armada HINO' }}</span>
+                    <a href="#tentang">Scroll untuk mengenal lebih dekat &darr;</a>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 md:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)] lg:px-8 lg:py-20">
-            <article class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-                <h2 class="text-2xl font-semibold text-gray-900">Tentang {{ $sale->name }}</h2>
-                <div class="mt-4 whitespace-pre-line leading-7 text-gray-600">{{ $sale->bio ?: 'Siap membantu Anda memilih unit HINO yang sesuai dengan kebutuhan usaha dan pola operasional armada.' }}</div>
-
-                <div class="mt-8 grid gap-4 sm:grid-cols-3">
-                    <div class="rounded-xl bg-green-50 p-4">
-                        <p class="font-semibold text-green-900">Konsultasi unit</p>
-                        <p class="mt-1 text-sm leading-6 text-green-800">Pemilihan kendaraan sesuai muatan dan rute.</p>
-                    </div>
-                    <div class="rounded-xl bg-green-50 p-4">
-                        <p class="font-semibold text-green-900">Informasi stok</p>
-                        <p class="mt-1 text-sm leading-6 text-green-800">Konfirmasi ketersediaan dan proses pembelian.</p>
-                    </div>
-                    <div class="rounded-xl bg-green-50 p-4">
-                        <p class="font-semibold text-green-900">Purna jual</p>
-                        <p class="mt-1 text-sm leading-6 text-green-800">Informasi layanan setelah unit diterima.</p>
-                    </div>
+            <section id="tentang" class="sales-intro">
+                <div class="sales-section-index" aria-hidden="true">01</div>
+                <div class="sales-intro-heading">
+                    <p class="sales-kicker sales-kicker--dark">Pendekatan konsultatif</p>
+                    <h2>Bukan sekadar memilih truk. <em>Menyusun armada yang bekerja.</em></h2>
                 </div>
-            </article>
+                <div class="sales-intro-copy">
+                    <p class="sales-lead">{{ $sale->bio ?: 'Saya membantu Anda memilih unit HINO berdasarkan kebutuhan usaha, karakter muatan, rute, dan pola operasional sehari-hari.' }}</p>
+                    <dl class="sales-contact-list">
+                        @if ($whatsapp)
+                            <div><dt>WhatsApp</dt><dd>+{{ $whatsapp }}</dd></div>
+                        @endif
+                        @if ($sale->phone)
+                            <div><dt>Telepon</dt><dd>{{ $sale->phone }}</dd></div>
+                        @endif
+                        @if ($sale->specialties)
+                            <div><dt>Fokus unit</dt><dd>{{ $sale->specialties }}</dd></div>
+                        @endif
+                    </dl>
+                </div>
+            </section>
 
-            <aside class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900">Kontak</h2>
-                <dl class="mt-5 space-y-5 text-sm">
-                    @if ($whatsapp)
-                        <div>
-                            <dt class="font-medium text-gray-500">WhatsApp</dt>
-                            <dd class="mt-1 font-semibold text-gray-900">+{{ $whatsapp }}</dd>
-                        </div>
-                    @endif
-                    @if ($sale->phone)
-                        <div>
-                            <dt class="font-medium text-gray-500">Telepon</dt>
-                            <dd class="mt-1 font-semibold text-gray-900">{{ $sale->phone }}</dd>
-                        </div>
-                    @endif
-                </dl>
+            <section class="sales-capabilities" aria-label="Layanan sales">
+                <div><span>01</span><h3>Konsultasi unit</h3><p>Pemilihan kendaraan berdasarkan muatan, rute, dan target operasional.</p></div>
+                <div><span>02</span><h3>Informasi stok</h3><p>Konfirmasi ketersediaan unit dan pendampingan proses pembelian.</p></div>
+                <div><span>03</span><h3>Layanan purna jual</h3><p>Koordinasi kebutuhan karoseri serta informasi layanan setelah serah terima.</p></div>
+            </section>
 
-                @if ($facebookUrl || $instagramUrl)
-                    <div class="mt-7 border-t border-gray-200 pt-5">
-                        <p class="text-sm font-medium text-gray-500">Media sosial</p>
-                        <div class="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
-                            @if ($facebookUrl)
-                                <a href="{{ $facebookUrl }}" target="_blank" rel="noopener noreferrer" class="text-blue-700 hover:underline">Facebook</a>
+            @if ($sale->sections->isNotEmpty())
+                <div id="cerita" class="sales-sections">
+                    @foreach ($sale->sections as $section)
+                        @php
+                            $sectionNumber = str_pad((string) ($loop->iteration + 1), 2, '0', STR_PAD_LEFT);
+                            $sectionMedia = $section->mediaUrl();
+                            $videoLayout = in_array($section->layout, ['video_left', 'video_right'], true)
+                                ? $section->layout
+                                : 'full_width';
+                            $sectionClass = match ($section->type) {
+                                'image_text' => 'sales-content sales-content--'.$section->layout,
+                                'video' => 'sales-content sales-content--video sales-content--'.$videoLayout,
+                                default => 'sales-content sales-content--text',
+                            };
+                        @endphp
+
+                        <section class="{{ $sectionClass }}">
+                            <div class="sales-section-index" aria-hidden="true">{{ $sectionNumber }}</div>
+
+                            @if ($section->type === 'image_text')
+                                @if ($sectionMedia)
+                                    <figure class="sales-content-media">
+                                        <img src="{{ $sectionMedia }}" alt="{{ $section->title }}" loading="lazy">
+                                    </figure>
+                                @endif
+                                <div class="sales-content-copy">
+                                    <p class="sales-kicker sales-kicker--dark">{{ $section->eyebrow ?: 'Cerita lapangan' }}</p>
+                                    <h2>{{ $section->title }}</h2>
+                                    @if ($section->body)
+                                        <div class="sales-content-body">{{ $section->body }}</div>
+                                    @endif
+                                    @if ($section->button_label && $section->button_url)
+                                        <a href="{{ $section->button_url }}" target="_blank" rel="noopener noreferrer" class="sales-text-link">{{ $section->button_label }} <span>&nearr;</span></a>
+                                    @endif
+                                </div>
+                            @elseif ($section->type === 'video')
+                                <div class="sales-video-copy">
+                                    <header class="sales-video-heading">
+                                        <p class="sales-kicker sales-kicker--dark">{{ $section->eyebrow ?: 'Video' }}</p>
+                                        <h2>{{ $section->title }}</h2>
+                                        @if ($section->body)<p class="sales-video-description">{{ $section->body }}</p>@endif
+                                    </header>
+                                    @if ($section->button_label && $section->button_url)
+                                        <a href="{{ $section->button_url }}" target="_blank" rel="noopener noreferrer" class="sales-text-link">{{ $section->button_label }} <span>&nearr;</span></a>
+                                    @endif
+                                </div>
+                                <div class="sales-video-frame">
+                                    @if ($section->media_path && $section->hasDirectVideo())
+                                        <video controls preload="metadata">
+                                            <source src="{{ $sectionMedia }}">
+                                            Browser Anda tidak mendukung pemutar video.
+                                        </video>
+                                    @elseif ($section->videoEmbedUrl())
+                                        <iframe src="{{ $section->videoEmbedUrl() }}" title="{{ $section->title }}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                    @elseif ($sectionMedia && $section->hasDirectVideo())
+                                        <video controls preload="metadata">
+                                            <source src="{{ $sectionMedia }}">
+                                            Browser Anda tidak mendukung pemutar video.
+                                        </video>
+                                    @elseif ($section->media_url)
+                                        <a href="{{ $section->media_url }}" target="_blank" rel="noopener noreferrer" class="sales-video-external">Buka video <span>&nearr;</span></a>
+                                    @else
+                                        <div class="sales-video-empty">Media video belum ditambahkan.</div>
+                                    @endif
+                                </div>
+                            @else
+                                <div class="sales-editorial-copy">
+                                    <p class="sales-kicker">{{ $section->eyebrow ?: 'Catatan' }}</p>
+                                    <h2>{{ $section->title }}</h2>
+                                    @if ($section->body)<div>{{ $section->body }}</div>@endif
+                                    @if ($section->button_label && $section->button_url)
+                                        <a href="{{ $section->button_url }}" target="_blank" rel="noopener noreferrer" class="sales-text-link sales-text-link--light">{{ $section->button_label }} <span>&nearr;</span></a>
+                                    @endif
+                                </div>
                             @endif
-                            @if ($instagramUrl)
-                                <a href="{{ $instagramUrl }}" target="_blank" rel="noopener noreferrer" class="text-pink-700 hover:underline">Instagram</a>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-            </aside>
-        </section>
+                        </section>
+                    @endforeach
+                </div>
+            @endif
 
-        @if ($sale->documentation_photos)
-            <section class="border-y border-gray-200 bg-white py-14 lg:py-20">
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div class="max-w-2xl">
-                        <h2 class="text-2xl font-semibold text-gray-900">Dokumentasi penyerahan unit</h2>
-                        <p class="mt-2 text-gray-600">Dokumentasi layanan dan penyerahan unit kepada pelanggan.</p>
+            @if ($documentationImages->isNotEmpty())
+                <section id="{{ $sale->sections->isEmpty() ? 'cerita' : 'dokumentasi' }}" class="sales-gallery">
+                    <div class="sales-gallery-heading">
+                        <p class="sales-kicker sales-kicker--dark">Dokumentasi nyata</p>
+                        <h2>Perjalanan unit, <em>dari konsultasi sampai serah terima.</em></h2>
                     </div>
-                    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        @foreach ($sale->documentation_photos as $documentationPhoto)
-                            <img src="{{ $sale->mediaUrl($documentationPhoto) }}" alt="Dokumentasi penyerahan unit oleh {{ $sale->name }}" loading="lazy" class="aspect-[4/3] w-full rounded-xl object-cover">
+                    <div class="sales-gallery-grid">
+                        @foreach ($documentationImages as $documentationImage)
+                            <figure>
+                                <img src="{{ $documentationImage }}" alt="Dokumentasi penyerahan unit oleh {{ $sale->name }}" loading="lazy">
+                                <figcaption>{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }} / HINO Armindo Perkasa</figcaption>
+                            </figure>
                         @endforeach
+                    </div>
+                </section>
+            @endif
+
+            <section id="kontak" class="sales-footer-cta" style="--sales-footer-image: url('{{ $footerImage }}')">
+                <div class="sales-footer-orbit" aria-hidden="true"></div>
+                <div class="sales-footer-copy">
+                    <p class="sales-kicker">Langkah berikutnya</p>
+                    <h2>{{ $footerTitle }}</h2>
+                    <p>{{ $footerDescription }}</p>
+                    @if ($whatsappUrl)
+                        <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener noreferrer" class="sales-button sales-button--light">Hubungi {{ $sale->name }}</a>
+                    @endif
+                </div>
+
+                <div class="sales-footer-panel">
+                    <div>
+                        <x-application-logo inverted class="sales-footer-lockup" />
+                        <p>Armindo Perkasa<br>Authorized HINO Dealer</p>
+                    </div>
+                    <dl>
+                        @if ($whatsapp)<div><dt>{{ $usesDealerWhatsapp ? 'WhatsApp dealer' : 'WhatsApp' }}</dt><dd>+{{ $whatsapp }}</dd></div>@endif
+                        @if ($sale->phone)<div><dt>Telepon</dt><dd>{{ $sale->phone }}</dd></div>@endif
+                        <div><dt>Sales consultant</dt><dd>{{ $sale->name }}</dd></div>
+                    </dl>
+                    <div class="sales-social-links">
+                        @if ($instagramUrl)<a href="{{ $instagramUrl }}" target="_blank" rel="noopener noreferrer">Instagram</a>@endif
+                        @if ($facebookUrl)<a href="{{ $facebookUrl }}" target="_blank" rel="noopener noreferrer">Facebook</a>@endif
+                        <a href="{{ route('home') }}">Website utama</a>
                     </div>
                 </div>
             </section>
-        @endif
+        </main>
 
-        <section class="bg-gray-50 py-14">
-            <div class="mx-auto flex max-w-5xl flex-col items-center px-4 text-center sm:px-6">
-                <h2 class="text-2xl font-semibold text-gray-900">Butuh rekomendasi unit HINO?</h2>
-                <p class="mt-3 max-w-2xl text-gray-600">Sampaikan kebutuhan muatan, rute, dan pola operasional Anda agar rekomendasi unit lebih tepat.</p>
-                @if ($whatsapp)
-                    <a href="https://wa.me/{{ $whatsapp }}?text={{ $whatsappMessage }}" target="_blank" rel="noopener noreferrer" class="mt-6 inline-flex rounded-lg bg-green-700 px-6 py-3 text-sm font-semibold text-white hover:bg-green-800">Hubungi {{ $sale->name }}</a>
-                @endif
-            </div>
-        </section>
-    </main>
-
-    <footer class="border-t border-gray-200 bg-white">
-        <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <footer class="sales-footer">
             <p>&copy; {{ now()->year }} Armindo Perkasa</p>
-            <a href="{{ route('home') }}" class="font-medium text-green-700 hover:text-green-900">Website utama</a>
-        </div>
-    </footer>
+            <p>Profil resmi {{ $sale->name }}</p>
+        </footer>
+    </div>
 </x-layouts.sales>

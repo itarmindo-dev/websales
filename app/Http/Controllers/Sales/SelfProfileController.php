@@ -15,8 +15,10 @@ class SelfProfileController extends Controller
 {
     public function edit(Request $request): View
     {
+        $sale = $request->user()->salesProfile()->with('sections')->first();
+
         return view('sales.profile.edit', [
-            'sale' => $request->user()->salesProfile()->first(),
+            'sale' => $sale,
         ]);
     }
 

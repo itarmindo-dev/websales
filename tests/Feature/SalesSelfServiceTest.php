@@ -31,6 +31,15 @@ class SalesSelfServiceTest extends TestCase
             'specialties' => 'HINO 300',
             'bio' => 'Membantu pelanggan memilih unit sesuai kebutuhan usaha.',
             'photo' => UploadedFile::fake()->image('rina.jpg', 500, 500),
+            'sections' => [
+                [
+                    'type' => 'text',
+                    'layout' => 'full_width',
+                    'title' => 'Prinsip layanan Rina',
+                    'body' => 'Rekomendasi disusun berdasarkan kebutuhan pelanggan.',
+                    'is_active' => '1',
+                ],
+            ],
         ])->assertRedirect(route('sales.self.edit'));
 
         $profile = $salesUser->salesProfile()->sole();
@@ -40,10 +49,12 @@ class SalesSelfServiceTest extends TestCase
         $this->assertSame('6281234567891', $profile->whatsapp_number);
         $this->assertSame('Rina HINO', $salesUser->fresh()->name);
         Storage::disk('public')->assertExists($profile->photo);
+        $this->assertSame('Prinsip layanan Rina', $profile->sections()->sole()->title);
 
         $this->get(route('sales.profile', $profile->slug))
             ->assertOk()
-            ->assertSee('Rina HINO');
+            ->assertSee('Rina HINO')
+            ->assertSee('Prinsip layanan Rina');
 
         $this->actingAs($salesUser)->patch(route('sales.self.update'), [
             'name' => 'Rina HINO Updated',
@@ -71,6 +82,41 @@ class SalesSelfServiceTest extends TestCase
 
         $this->assertModelExists($salesUser);
         $this->assertModelExists($otherProfile);
+    }
+
+    public function test_sales_cannot_update_a_section_owned_by_another_profile(): void
+    {
+        $salesUser = User::factory()->sales()->create();
+        SalesProfile::query()->create([
+            'user_id' => $salesUser->id,
+            'slug' => 'profil-saya',
+            'name' => 'Profil Saya',
+        ]);
+        $otherProfile = SalesProfile::query()->create([
+            'slug' => 'profil-lain',
+            'name' => 'Profil Lain',
+        ]);
+        $otherSection = $otherProfile->sections()->create([
+            'type' => 'text',
+            'layout' => 'full_width',
+            'title' => 'Milik sales lain',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($salesUser)->from(route('sales.self.edit'))->patch(route('sales.self.update'), [
+            'name' => 'Profil Saya Diubah',
+            'sections' => [[
+                'id' => $otherSection->id,
+                'type' => 'text',
+                'layout' => 'full_width',
+                'title' => 'Berusaha mengambil section',
+                'is_active' => '1',
+            ]],
+        ])->assertRedirect(route('sales.self.edit'))
+            ->assertSessionHasErrors('sections.0.id');
+
+        $this->assertSame('Profil Saya', $salesUser->salesProfile->fresh()->name);
+        $this->assertSame('Milik sales lain', $otherSection->fresh()->title);
     }
 
     public function test_admin_can_disable_a_sales_login_without_deleting_the_profile(): void

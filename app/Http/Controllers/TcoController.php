@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\TcoReportMail;
+use App\Models\SalesProfile;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class TcoController extends Controller
 {
@@ -31,8 +32,7 @@ class TcoController extends Controller
                 'tipe_unit'     => 'nullable|string',
                 'kategori_model'=> 'nullable|string',
                 'kondisi_jalan' => 'nullable|string',
-                'sales_name'    => 'nullable|string|max:255',
-                'sales_email'   => 'nullable|email|max:255',
+                'sales_slug'    => 'nullable|string|max:255|exists:sales_profiles,slug',
             ]);
 
             // --- 2. AMBIL DATA ---
@@ -53,8 +53,16 @@ class TcoController extends Controller
             $kategori_model = $validated['kategori_model'] ?? '-';
             $kondisi_jalan  = $validated['kondisi_jalan'] ?? '-';
             
-            $sales_name     = $validated['sales_name'] ?? 'Tim Sales';
-            $sales_email    = $validated['sales_email'] ?? 'itarmindo@gmail.com';
+            $salesProfile = isset($validated['sales_slug'])
+                ? SalesProfile::query()->with('user:id,email')->where('slug', $validated['sales_slug'])->first()
+                : null;
+            $mainRecipientEmail = config('tco.recipient_email');
+            $mainRecipientName = config('tco.recipient_name');
+            $sales_name = $salesProfile?->name ?? 'Tim Sales';
+            $sales_email = $salesProfile?->user?->email ?? $mainRecipientEmail;
+            $sales_phone = $salesProfile?->whatsapp_number
+                ?? $salesProfile?->whatsapp
+                ?? $salesProfile?->phone;
 
             // --- 3. PERHITUNGAN TCO ---
             $km_per_tahun = $avg_km_harian * $hari_operasi;
@@ -167,6 +175,8 @@ class TcoController extends Controller
                 'tanggal'           => now()->format('d F Y'),
                 'sales_name'        => $sales_name,
                 'sales_email'       => $sales_email,
+                'sales_phone'       => $sales_phone,
+                'sales_source'      => (bool) $salesProfile,
             ];
 
             // Tambahkan Base64 Logo Hino untuk PDF Header
@@ -187,10 +197,10 @@ class TcoController extends Controller
             $pdfContent = $pdf->output();
             
             $recipients = [
-                ['email' => 'itarmindo@gmail.com', 'name' => 'Tim Sales Utama']
+                ['email' => $mainRecipientEmail, 'name' => $mainRecipientName],
             ];
             
-            if ($sales_email !== 'itarmindo@gmail.com') {
+            if (strcasecmp($sales_email, $mainRecipientEmail) !== 0) {
                 $recipients[] = ['email' => $sales_email, 'name' => $sales_name];
             }
 

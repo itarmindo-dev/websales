@@ -1,52 +1,52 @@
 @php
-    function formatRupiah($angka) { return 'Rp ' . number_format(round($angka), 0, ',', '.'); }
-    function formatRupiahFloored($angka) { return 'Rp ' . number_format(floor($angka), 0, ',', '.'); }
-    function formatAngka($angka, $desimal = 0) { return number_format($angka, $desimal, ',', '.'); }
+    $formatRupiah = static fn ($angka) => 'Rp ' . number_format(round($angka), 0, ',', '.');
+    $formatRupiahFloored = static fn ($angka) => 'Rp ' . number_format(floor($angka), 0, ',', '.');
+    $formatAngka = static fn ($angka, $desimal = 0) => number_format($angka, $desimal, ',', '.');
 
     // --- 3. FORMAT SEMUA NILAI ---
     $val_periode = $periode_tco;
     $val_km_per_tahun_rumus = "{$avg_km_harian} KM/Hari * {$hari_operasi} Hari";
-    $val_km_per_tahun_hasil = formatAngka($km_per_tahun) . " KM";
-    $val_total_km_text = formatAngka($total_km) . " KM";
+    $val_km_per_tahun_hasil = $formatAngka($km_per_tahun) . " KM";
+    $val_total_km_text = $formatAngka($total_km) . " KM";
     
-    $val_akuisisi_pokok_rumus = formatRupiah($harga_unit) . ' + ' . formatRupiah($harga_karoseri);
-    $val_akuisisi_pokok_hasil = formatRupiah($harga_pokok);
+    $val_akuisisi_pokok_rumus = $formatRupiah($harga_unit) . ' + ' . $formatRupiah($harga_karoseri);
+    $val_akuisisi_pokok_hasil = $formatRupiah($harga_pokok);
     
-    $val_bunga_rumus = formatRupiah($harga_pokok) . " * ({$bunga_flat}%) * {$durasi_bunga} Thn";
-    $val_bunga_hasil = formatRupiah($total_bunga);
+    $val_bunga_rumus = $formatRupiah($harga_pokok) . " * ({$bunga_flat}%) * {$durasi_bunga} Thn";
+    $val_bunga_hasil = $formatRupiah($total_bunga);
     
-    $val_akuisisi_total_rumus = formatRupiah($harga_pokok) . ' + ' . formatRupiah($total_bunga);
-    $val_akuisisi_total_hasil = formatRupiah($total_akuisisi);
+    $val_akuisisi_total_rumus = $formatRupiah($harga_pokok) . ' + ' . $formatRupiah($total_bunga);
+    $val_akuisisi_total_hasil = $formatRupiah($total_akuisisi);
     
-    $val_solar_liter_rumus = formatAngka($total_km) . " KM / " . formatAngka($konsumsi_bbm, 2) . " KM/L";
-    $val_solar_liter_hasil = formatAngka($total_liter_solar) . " Liter";
+    $val_solar_liter_rumus = $formatAngka($total_km) . " KM / " . $formatAngka($konsumsi_bbm, 2) . " KM/L";
+    $val_solar_liter_hasil = $formatAngka($total_liter_solar) . " Liter";
     
-    $val_solar_biaya_rumus = formatAngka($total_liter_solar) . " L * " . formatRupiah($harga_solar);
-    $val_solar_biaya_hasil = formatRupiah($total_biaya_solar);
+    $val_solar_biaya_rumus = $formatAngka($total_liter_solar) . " L * " . $formatRupiah($harga_solar);
+    $val_solar_biaya_hasil = $formatRupiah($total_biaya_solar);
     
-    $val_ban_jumlah_rumus = formatAngka($total_km) . " KM / " . formatAngka($umur_ban) . " KM";
-    $val_ban_jumlah_hasil = formatAngka($jumlah_ganti_ban, 2) . " kali";
+    $val_ban_jumlah_rumus = $formatAngka($total_km) . " KM / " . $formatAngka($umur_ban) . " KM";
+    $val_ban_jumlah_hasil = $formatAngka($jumlah_ganti_ban, 2) . " kali";
     
-    $val_ban_biaya_rumus = formatAngka($jumlah_ganti_ban, 2) . " * " . formatRupiah($harga_ban);
-    $val_ban_biaya_hasil = formatRupiah($total_biaya_ban);
+    $val_ban_biaya_rumus = $formatAngka($jumlah_ganti_ban, 2) . " * " . $formatRupiah($harga_ban);
+    $val_ban_biaya_hasil = $formatRupiah($total_biaya_ban);
     
-    $val_servis_total_hasil = formatRupiah($total_biaya_servis);
-    $val_operasional_total_hasil = formatRupiah($total_operasional);
-    $val_hjk_awal_hasil = formatRupiah($harga_pokok);
-    $val_hjk_final_hasil = formatRupiah($harga_jual_kembali);
+    $val_servis_total_hasil = $formatRupiah($total_biaya_servis);
+    $val_operasional_total_hasil = $formatRupiah($total_operasional);
+    $val_hjk_awal_hasil = $formatRupiah($harga_pokok);
+    $val_hjk_final_hasil = $formatRupiah($harga_jual_kembali);
     
-    $val_final_akuisisi = formatRupiah($total_akuisisi);
-    $val_final_operasional = formatRupiah($total_operasional);
-    $val_final_hjk = '(' . formatRupiah($harga_jual_kembali) . ')';
-    $val_final_tco = formatRupiah($tco_final);
+    $val_final_akuisisi = $formatRupiah($total_akuisisi);
+    $val_final_operasional = $formatRupiah($total_operasional);
+    $val_final_hjk = '(' . $formatRupiah($harga_jual_kembali) . ')';
+    $val_final_tco = $formatRupiah($tco_final);
     
-    $val_metric_tco = formatRupiah($tco_final);
-    $val_metric_bulan_rumus = formatRupiah($tco_final) . " / " . ($periode_tco * 12) . " Bln";
-    $val_metric_bulan_hasil = formatRupiahFloored($tco_per_bln) . " / Bulan";
-    $val_metric_km_rumus = formatRupiah($tco_final) . " / " . formatAngka($total_km) . " KM";
-    $val_metric_km_hasil = formatRupiahFloored($tco_per_km) . " / KM";
-    $val_metric_ongkos_angkut = formatRupiahFloored($ongkos_angkut) . "/KM";
-    $val_metric_profit_kotor = formatRupiahFloored($profit_kotor) . "/KM";
+    $val_metric_tco = $formatRupiah($tco_final);
+    $val_metric_bulan_rumus = $formatRupiah($tco_final) . " / " . ($periode_tco * 12) . " Bln";
+    $val_metric_bulan_hasil = $formatRupiahFloored($tco_per_bln) . " / Bulan";
+    $val_metric_km_rumus = $formatRupiah($tco_final) . " / " . $formatAngka($total_km) . " KM";
+    $val_metric_km_hasil = $formatRupiahFloored($tco_per_km) . " / KM";
+    $val_metric_ongkos_angkut = $formatRupiahFloored($ongkos_angkut) . "/KM";
+    $val_metric_profit_kotor = $formatRupiahFloored($profit_kotor) . "/KM";
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -211,13 +211,13 @@
                         <tr>
                             <td class="item-detail-nested">Biaya Tahun 1</td>
                             <td class="item-rumus"></td>
-                            <td class="item-hasil">{{ formatRupiah($servis['biaya']) }}</td>
+                            <td class="item-hasil">{{ $formatRupiah($servis['biaya']) }}</td>
                         </tr>
                     @else
                         <tr>
                             <td class="item-detail-nested">Biaya Tahun {{ $servis['tahun'] }} (Inflasi 15%)</td>
-                            <td class="item-rumus">{{ formatRupiah($servis['biaya_sebelum']) }} * 1.15</td>
-                            <td class="item-hasil">{{ formatRupiah($servis['biaya']) }}</td>
+                            <td class="item-rumus">{{ $formatRupiah($servis['biaya_sebelum']) }} * 1.15</td>
+                            <td class="item-hasil">{{ $formatRupiah($servis['biaya']) }}</td>
                         </tr>
                     @endif
                 @endforeach
@@ -240,8 +240,8 @@
                 @foreach($rincian_depresiasi as $depr)
                     <tr>
                         <td class="item-detail-nested">Nilai Akhir Tahun {{ $depr['tahun'] }} (Turun {{ $depr['rate'] }}%)</td>
-                        <td class="item-rumus">{{ formatRupiah($depr['nilai_sebelum']) }} * {{ (100 - $depr['rate']) / 100 }}</td>
-                        <td class="item-hasil">{{ formatRupiah($depr['nilai_sesudah']) }}</td>
+                        <td class="item-rumus">{{ $formatRupiah($depr['nilai_sebelum']) }} * {{ (100 - $depr['rate']) / 100 }}</td>
+                        <td class="item-hasil">{{ $formatRupiah($depr['nilai_sesudah']) }}</td>
                     </tr>
                 @endforeach
             </tbody>
