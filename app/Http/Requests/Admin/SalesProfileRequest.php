@@ -102,14 +102,20 @@ class SalesProfileRequest extends FormRequest
             'sections.*.title' => ['nullable', 'string', 'max:180'],
             'sections.*.body' => ['nullable', 'string', 'max:3000'],
             'sections.*.media_url' => ['nullable', 'url:http,https', 'max:1000'],
+            'sections.*.thumbnail_url' => ['nullable', 'url:http,https', 'max:1000'],
             'sections.*.media_file' => [
                 'nullable',
                 File::types(['jpg', 'jpeg', 'png', 'webp', 'mp4', 'webm'])->max('30mb'),
+            ],
+            'sections.*.thumbnail_file' => [
+                'nullable',
+                File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max('5mb'),
             ],
             'sections.*.button_label' => ['nullable', 'string', 'max:80'],
             'sections.*.button_url' => ['nullable', 'url:http,https', 'max:1000'],
             'sections.*.is_active' => ['nullable', 'boolean'],
             'sections.*.remove_media' => ['nullable', 'boolean'],
+            'sections.*.remove_thumbnail' => ['nullable', 'boolean'],
             'sections.*._delete' => ['nullable', 'boolean'],
         ];
 
@@ -188,6 +194,10 @@ class SalesProfileRequest extends FormRequest
 
                 if ($media && $type === 'text') {
                     $validator->errors()->add("sections.{$index}.media_file", 'Section teks tidak menggunakan file media.');
+                }
+
+                if ($this->file("sections.{$index}.thumbnail_file") && $type !== 'video') {
+                    $validator->errors()->add("sections.{$index}.thumbnail_file", 'Thumbnail hanya digunakan pada section video.');
                 }
 
                 if (filled($section['button_label'] ?? null) xor filled($section['button_url'] ?? null)) {

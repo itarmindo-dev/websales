@@ -108,6 +108,21 @@ class TcoSubmissionTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_production_does_not_report_success_when_mailer_cannot_deliver_email(): void
+    {
+        Mail::fake();
+        $this->app->detectEnvironment(fn (): string => 'production');
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+        config(['mail.default' => 'log']);
+
+        $this->postJson(route('tco.submit'), $this->validPayload())
+            ->assertInternalServerError()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Terjadi kesalahan saat mengirim laporan. Silakan coba lagi.');
+
+        Mail::assertNothingSent();
+    }
+
     private function validPayload(): array
     {
         return [

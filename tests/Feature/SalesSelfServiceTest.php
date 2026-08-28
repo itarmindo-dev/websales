@@ -141,6 +141,7 @@ class SalesSelfServiceTest extends TestCase
 
         $this->actingAs($salesUser)->from(route('sales.self.edit'))->patch(route('sales.self.update'), [
             'name' => 'Profil Saya Diubah',
+            'slug' => 'profil-saya',
             'sections' => [[
                 'id' => $otherSection->id,
                 'type' => 'text',
@@ -167,6 +168,7 @@ class SalesSelfServiceTest extends TestCase
 
         $this->actingAs($admin)->patch(route('admin.sales.update', $profile), [
             'name' => 'Sales Aktif',
+            'slug' => 'sales-aktif',
             'account_email' => 'sales@example.com',
             'account_enabled' => '0',
         ])->assertRedirect(route('admin.sales.index'));

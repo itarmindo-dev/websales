@@ -8,6 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use RuntimeException;
 
 class TcoController extends Controller
 {
@@ -63,6 +64,8 @@ class TcoController extends Controller
             $sales_phone = $salesProfile?->whatsapp_number
                 ?? $salesProfile?->whatsapp
                 ?? $salesProfile?->phone;
+
+            $this->assertMailDeliveryConfigured();
 
             // --- 3. PERHITUNGAN TCO ---
             $km_per_tahun = $avg_km_harian * $hari_operasi;
@@ -234,5 +237,24 @@ class TcoController extends Controller
     private function formatRupiah($angka): string
     {
         return 'Rp ' . number_format(round($angka), 0, ',', '.');
+    }
+
+    private function assertMailDeliveryConfigured(): void
+    {
+        if (! app()->isProduction()) {
+            return;
+        }
+
+        $mailer = (string) config('mail.default');
+
+        if (in_array($mailer, ['array', 'log'], true)) {
+            throw new RuntimeException(
+                "TCO email delivery is disabled because MAIL_MAILER is set to [{$mailer}].",
+            );
+        }
+
+        if (! filter_var(config('mail.from.address'), FILTER_VALIDATE_EMAIL)) {
+            throw new RuntimeException('MAIL_FROM_ADDRESS is not a valid email address.');
+        }
     }
 }

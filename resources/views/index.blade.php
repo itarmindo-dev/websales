@@ -3,8 +3,21 @@
 @section('title', 'Armindo Perkasa - Dealer Resmi HINO')
 
 @php
-    $whatsapp = preg_replace('/\D+/', '', $settings->whatsapp_number);
-    $generalWhatsappMessage = rawurlencode('Halo Armindo Perkasa, saya ingin konsultasi unit HINO.');
+    $dealerWhatsapp = preg_replace('/\D+/', '', (string) $settings->whatsapp_number);
+    $salesWhatsapp = preg_replace('/\D+/', '', (string) ($salesSource?->whatsapp_number ?? $salesSource?->whatsapp));
+    $whatsapp = $salesWhatsapp ?: $dealerWhatsapp;
+    $usesSalesWhatsapp = filled($salesWhatsapp);
+    $whatsappLabel = $usesSalesWhatsapp ? '+'.$salesWhatsapp : $settings->whatsapp_label;
+    $whatsappRecipient = $usesSalesWhatsapp ? $salesSource->name : 'Armindo Perkasa';
+    $salesAttribution = $salesSource && ! $usesSalesWhatsapp
+        ? " Saya membuka halaman dari sales {$salesSource->name}."
+        : '';
+    $whatsappMessage = static function (string $intent) use ($whatsappRecipient, $salesAttribution): string {
+        $intent = trim((string) preg_replace('/^\s*halo\b[^,]*,\s*/iu', '', $intent));
+
+        return rawurlencode("Halo {$whatsappRecipient},{$salesAttribution} {$intent}");
+    };
+    $generalWhatsappMessage = $whatsappMessage('Saya ingin konsultasi unit HINO.');
     $secondaryTarget = match (true) {
         $settings->models_enabled => '#models',
         $settings->tco_enabled => '#tco',
@@ -113,7 +126,7 @@
                             <p>{{ $settings->tco_promo }}</p>
                         </div>
 
-                        <a class="text-link" href="https://wa.me/{{ $whatsapp }}?text={{ rawurlencode('Halo Armindo Perkasa, saya ingin langsung konsultasi dengan sales.') }}" target="_blank" rel="noopener noreferrer">
+                        <a class="text-link" href="https://wa.me/{{ $whatsapp }}?text={{ $whatsappMessage('Saya ingin langsung konsultasi dengan sales.') }}" target="_blank" rel="noopener noreferrer">
                             Langsung hubungi sales <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
                         </a>
                     </div>
@@ -142,11 +155,11 @@
 
                     <div class="ready-visual">
                         @if ($settings->models_image)<img src="{{ asset($settings->models_image) }}" alt="Lineup kendaraan HINO siap kirim">@endif
-                        <a class="ready-contact" href="https://wa.me/{{ $whatsapp }}?text={{ rawurlencode('Halo Armindo Perkasa, saya ingin menanyakan stok unit HINO.') }}" target="_blank" rel="noopener noreferrer">
+                        <a class="ready-contact" href="https://wa.me/{{ $whatsapp }}?text={{ $whatsappMessage('Saya ingin menanyakan stok unit HINO.') }}" target="_blank" rel="noopener noreferrer">
                             <i class="fa-brands fa-whatsapp ready-contact-icon" aria-hidden="true"></i>
                             <span class="ready-contact-copy">
                                 <span class="ready-contact-label">{{ $settings->models_cta_label }}</span>
-                                <strong>{{ $settings->whatsapp_label }}</strong>
+                                <strong>{{ $whatsappLabel }}</strong>
                                 <small>{{ $settings->models_cta_subtitle }}</small>
                             </span>
                             <i class="fa-solid fa-arrow-right ready-contact-arrow" aria-hidden="true"></i>
@@ -165,7 +178,7 @@
                                     @if ($truckModel->series)<p>{{ $truckModel->series }}</p>@endif
                                     <h3>{{ $truckModel->name }}</h3>
                                     @if ($truckModel->description)<div>{{ $truckModel->description }}</div>@endif
-                                    <a href="https://wa.me/{{ $whatsapp }}?text={{ rawurlencode($truckModel->whatsapp_message ?: 'Halo Armindo Perkasa, saya ingin mengetahui informasi '.$truckModel->name.'.') }}" target="_blank" rel="noopener noreferrer">Tanya model ini <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                                    <a href="https://wa.me/{{ $whatsapp }}?text={{ $whatsappMessage($truckModel->whatsapp_message ?: 'Saya ingin mengetahui informasi '.$truckModel->name.'.') }}" target="_blank" rel="noopener noreferrer">Tanya model ini <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                                 </div>
                             </article>
                         @endforeach
@@ -221,7 +234,7 @@
                         <p>{{ $settings->contact_description }}</p>
 
                         <div class="contact-list">
-                            <a href="https://wa.me/{{ $whatsapp }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i><span><small>WhatsApp / Sales</small>{{ $settings->whatsapp_label }}</span></a>
+                            <a href="https://wa.me/{{ $whatsapp }}?text={{ $generalWhatsappMessage }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i><span><small>WhatsApp / Sales</small>{{ $whatsappLabel }}</span></a>
                             @if ($settings->website_url)<a href="{{ $settings->website_url }}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span><small>HINO Armindo</small>{{ $settings->website_label ?: $settings->website_url }}</span></a>@endif
                             <div><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><small>Alamat Dealer</small>{{ $settings->address }}</span></div>
                             <a href="mailto:{{ $settings->email }}"><i class="fa-solid fa-envelope" aria-hidden="true"></i><span><small>Email</small>{{ $settings->email }}</span></a>

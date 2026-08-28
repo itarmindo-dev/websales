@@ -79,6 +79,7 @@ class SalesProfileService
             $profile->footer_image,
             ...($profile->documentation_photos ?? []),
             ...$profile->sections()->pluck('media_path')->all(),
+            ...$profile->sections()->pluck('thumbnail_path')->all(),
         ]);
 
         $profile->delete();
@@ -161,6 +162,7 @@ class SalesProfileService
             if (filter_var($sectionData['_delete'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
                 if ($section) {
                     $filesToDelete[] = $section->media_path;
+                    $filesToDelete[] = $section->thumbnail_path;
                     $section->delete();
                 }
 
@@ -170,7 +172,9 @@ class SalesProfileService
             $section ??= new SalesProfileSection;
             $type = $sectionData['type'] ?? 'text';
             $mediaPath = $section->media_path;
+            $thumbnailPath = $section->thumbnail_path;
             $uploadedMedia = $request->file("sections.{$index}.media_file");
+            $uploadedThumbnail = $request->file("sections.{$index}.thumbnail_file");
 
             if ($uploadedMedia) {
                 $mediaPath = $uploadedMedia->store('sales_sections', 'public');
@@ -181,6 +185,15 @@ class SalesProfileService
                 $mediaPath = null;
             }
 
+            if ($uploadedThumbnail) {
+                $thumbnailPath = $uploadedThumbnail->store('sales_section_thumbnails', 'public');
+                $uploadedPaths[] = $thumbnailPath;
+                $filesToDelete[] = $section->thumbnail_path;
+            } elseif ($request->boolean("sections.{$index}.remove_thumbnail") || $type !== 'video') {
+                $filesToDelete[] = $section->thumbnail_path;
+                $thumbnailPath = null;
+            }
+
             $section->fill([
                 ...Arr::only($sectionData, [
                     'type',
@@ -189,12 +202,15 @@ class SalesProfileService
                     'title',
                     'body',
                     'media_url',
+                    'thumbnail_url',
                     'button_label',
                     'button_url',
                 ]),
                 'layout' => $sectionData['layout'] ?? 'media_left',
                 'media_path' => $mediaPath,
                 'media_url' => $type === 'text' ? null : ($sectionData['media_url'] ?? null),
+                'thumbnail_path' => $type === 'video' ? $thumbnailPath : null,
+                'thumbnail_url' => $type === 'video' ? ($sectionData['thumbnail_url'] ?? null) : null,
                 'sort_order' => $sortOrder++,
                 'is_active' => $request->boolean("sections.{$index}.is_active"),
             ]);

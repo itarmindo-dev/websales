@@ -49,7 +49,7 @@
 >
     <div class="sales-page">
         <header class="sales-header">
-            <a href="{{ route('home') }}" class="sales-brand" aria-label="Kembali ke beranda Armindo Perkasa">
+            <a href="{{ route('home', ['sales' => $sale->slug]) }}" class="sales-brand" aria-label="Kembali ke beranda Armindo Perkasa">
                 <x-application-logo inverted class="sales-brand-lockup" />
             </a>
 
@@ -152,6 +152,8 @@
                         @php
                             $sectionNumber = str_pad((string) ($loop->iteration + 1), 2, '0', STR_PAD_LEFT);
                             $sectionMedia = $section->mediaUrl();
+                            $videoEmbed = $section->type === 'video' ? $section->videoEmbedUrl() : null;
+                            $videoThumbnail = $section->type === 'video' ? $section->videoThumbnailUrl() : null;
                             $videoLayout = in_array($section->layout, ['video_left', 'video_right'], true)
                                 ? $section->layout
                                 : 'full_width';
@@ -178,7 +180,7 @@
                                         <div class="sales-content-body">{{ $section->body }}</div>
                                     @endif
                                     @if ($section->button_label && $section->button_url)
-                                        <a href="{{ $section->button_url }}" target="_blank" rel="noopener noreferrer" class="sales-text-link">{{ $section->button_label }} <span>&nearr;</span></a>
+                                        <a href="{{ $section->button_url }}" target="_blank" rel="noopener noreferrer" class="sales-text-link">{{ $section->button_label }} <x-external-link-icon /></a>
                                     @endif
                                 </div>
                             @elseif ($section->type === 'video')
@@ -189,24 +191,29 @@
                                         @if ($section->body)<p class="sales-video-description">{{ $section->body }}</p>@endif
                                     </header>
                                     @if ($section->button_label && $section->button_url)
-                                        <a href="{{ $section->button_url }}" target="_blank" rel="noopener noreferrer" class="sales-text-link">{{ $section->button_label }} <span>&nearr;</span></a>
+                                        <a href="{{ $section->button_url }}" target="_blank" rel="noopener noreferrer" class="sales-text-link">{{ $section->button_label }} <x-external-link-icon /></a>
                                     @endif
                                 </div>
                                 <div class="sales-video-frame">
                                     @if ($section->media_path && $section->hasDirectVideo())
-                                        <video controls preload="metadata">
+                                        <video controls preload="metadata" @if($videoThumbnail) poster="{{ $videoThumbnail }}" @endif>
                                             <source src="{{ $sectionMedia }}">
                                             Browser Anda tidak mendukung pemutar video.
                                         </video>
-                                    @elseif ($section->videoEmbedUrl())
-                                        <iframe src="{{ $section->videoEmbedUrl() }}" title="{{ $section->title }}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                    @elseif ($videoEmbed)
+                                        <iframe src="{{ $videoEmbed }}" title="{{ $section->title }}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
                                     @elseif ($sectionMedia && $section->hasDirectVideo())
-                                        <video controls preload="metadata">
+                                        <video controls preload="metadata" @if($videoThumbnail) poster="{{ $videoThumbnail }}" @endif>
                                             <source src="{{ $sectionMedia }}">
                                             Browser Anda tidak mendukung pemutar video.
                                         </video>
                                     @elseif ($section->media_url)
-                                        <a href="{{ $section->media_url }}" target="_blank" rel="noopener noreferrer" class="sales-video-external">Buka video <span>&nearr;</span></a>
+                                        <a href="{{ $section->media_url }}" target="_blank" rel="noopener noreferrer" class="sales-video-external {{ $videoThumbnail ? 'sales-video-external--thumbnail' : '' }}">
+                                            @if ($videoThumbnail)
+                                                <img src="{{ $videoThumbnail }}" alt="Thumbnail {{ $section->title }}" loading="lazy">
+                                            @endif
+                                            <span>Buka video <x-external-link-icon /></span>
+                                        </a>
                                     @else
                                         <div class="sales-video-empty">Media video belum ditambahkan.</div>
                                     @endif
@@ -217,7 +224,7 @@
                                     <h2>{{ $section->title }}</h2>
                                     @if ($section->body)<div>{{ $section->body }}</div>@endif
                                     @if ($section->button_label && $section->button_url)
-                                        <a href="{{ $section->button_url }}" target="_blank" rel="noopener noreferrer" class="sales-text-link sales-text-link--light">{{ $section->button_label }} <span>&nearr;</span></a>
+                                        <a href="{{ $section->button_url }}" target="_blank" rel="noopener noreferrer" class="sales-text-link sales-text-link--light">{{ $section->button_label }} <x-external-link-icon /></a>
                                     @endif
                                 </div>
                             @endif

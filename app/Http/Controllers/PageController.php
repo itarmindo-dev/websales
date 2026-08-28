@@ -18,7 +18,15 @@ class PageController extends Controller
 
         if ($request->filled('sales')) {
             $salesSource = SalesProfile::query()
-                ->select(['id', 'user_id', 'slug', 'name'])
+                ->select([
+                    'id',
+                    'user_id',
+                    'slug',
+                    'name',
+                    'phone',
+                    'whatsapp',
+                    'whatsapp_number',
+                ])
                 ->where('slug', $request->string('sales')->trim()->toString())
                 ->first();
         }

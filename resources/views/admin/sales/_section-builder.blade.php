@@ -29,10 +29,14 @@
             'media_url' => $section->media_url,
             'media_preview_url' => $section->media_path ? $section->mediaUrl() : null,
             'media_name' => $section->media_path ? basename($section->media_path) : null,
+            'thumbnail_url' => $section->thumbnail_url,
+            'thumbnail_preview_url' => $section->thumbnail_path ? $section->videoThumbnailUrl() : null,
+            'thumbnail_name' => $section->thumbnail_path ? basename($section->thumbnail_path) : null,
             'button_label' => $section->button_label,
             'button_url' => $section->button_url,
             'is_active' => $section->is_active,
             'remove_media' => false,
+            'remove_thumbnail' => false,
             '_delete' => false,
         ])->values()->all();
     } else {
@@ -51,10 +55,14 @@
                 'media_url' => $section['media_url'] ?? '',
                 'media_preview_url' => $storedSection?->media_path ? $storedSection->mediaUrl() : null,
                 'media_name' => $storedSection?->media_path ? basename($storedSection->media_path) : null,
+                'thumbnail_url' => $section['thumbnail_url'] ?? '',
+                'thumbnail_preview_url' => $storedSection?->thumbnail_path ? $storedSection->videoThumbnailUrl() : null,
+                'thumbnail_name' => $storedSection?->thumbnail_path ? basename($storedSection->thumbnail_path) : null,
                 'button_label' => $section['button_label'] ?? '',
                 'button_url' => $section['button_url'] ?? '',
                 'is_active' => filter_var($section['is_active'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'remove_media' => filter_var($section['remove_media'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'remove_thumbnail' => filter_var($section['remove_thumbnail'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 '_delete' => filter_var($section['_delete'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ];
         })->values()->all();
@@ -157,7 +165,8 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-800" x-text="section.type === 'video' ? 'Atau link video' : 'Atau URL gambar'"></label>
-                                        <input x-model="section.media_url" :name="`sections[${index}][media_url]`" type="url" maxlength="1000" :placeholder="section.type === 'video' ? 'YouTube, Vimeo, atau URL video langsung' : 'https://...'" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600">
+                                        <input x-model="section.media_url" :name="`sections[${index}][media_url]`" type="url" maxlength="1000" :placeholder="section.type === 'video' ? 'YouTube, Vimeo, TikTok, atau URL video langsung' : 'https://...'" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600">
+                                        <p x-show="section.type === 'video'" class="mt-1 text-xs text-gray-500">TikTok dapat diputar langsung jika URL berbentuk tiktok.com/@akun/video/123...</p>
                                     </div>
 
                                     <div x-show="section.media_preview_url" class="sm:col-span-2 rounded-lg border border-gray-200 bg-white p-3">
@@ -169,6 +178,34 @@
                                                     <input type="hidden" :name="`sections[${index}][remove_media]`" value="0">
                                                     <input type="checkbox" :name="`sections[${index}][remove_media]`" value="1" x-model="section.remove_media" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
                                                     Hapus media saat ini
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="section.type === 'video'">
+                                <div class="contents">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-800">Thumbnail cadangan</label>
+                                        <input :name="`sections[${index}][thumbnail_file]`" type="file" accept="image/jpeg,image/png,image/webp" class="mt-2 block w-full text-sm text-gray-600 file:me-3 file:rounded-lg file:border-0 file:bg-green-50 file:px-3 file:py-2 file:font-semibold file:text-green-800 hover:file:bg-green-100">
+                                        <p class="mt-1 text-xs text-gray-500">Dipakai jika sumber video tidak mendukung pemutar langsung. Maksimal 5 MB.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-800">Atau URL thumbnail</label>
+                                        <input x-model="section.thumbnail_url" :name="`sections[${index}][thumbnail_url]`" type="url" maxlength="1000" placeholder="https://.../thumbnail.jpg" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600">
+                                    </div>
+
+                                    <div x-show="section.thumbnail_preview_url" class="sm:col-span-2 rounded-lg border border-gray-200 bg-white p-3">
+                                        <div class="flex items-center gap-4">
+                                            <img :src="section.thumbnail_preview_url" alt="Preview thumbnail video" class="h-20 w-28 rounded-md object-cover">
+                                            <div class="min-w-0 flex-1">
+                                                <p class="truncate text-sm font-medium text-gray-800" x-text="section.thumbnail_name || 'Thumbnail saat ini'"></p>
+                                                <label class="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                                                    <input type="hidden" :name="`sections[${index}][remove_thumbnail]`" value="0">
+                                                    <input type="checkbox" :name="`sections[${index}][remove_thumbnail]`" value="1" x-model="section.remove_thumbnail" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                                    Hapus thumbnail saat ini
                                                 </label>
                                             </div>
                                         </div>

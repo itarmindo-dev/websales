@@ -159,6 +159,7 @@ class AdminSalesProfileTest extends TestCase
         $oldDocumentation = UploadedFile::fake()->image('old-doc.jpg')->store('sales_docs', 'public');
         $oldHero = UploadedFile::fake()->image('old-hero.jpg')->store('sales_heroes', 'public');
         $oldSectionMedia = UploadedFile::fake()->image('old-section.jpg')->store('sales_sections', 'public');
+        $oldSectionThumbnail = UploadedFile::fake()->image('old-thumbnail.jpg')->store('sales_section_thumbnails', 'public');
         $sale = SalesProfile::query()->create([
             'slug' => 'siti-hino',
             'name' => 'Siti HINO',
@@ -171,11 +172,13 @@ class AdminSalesProfileTest extends TestCase
             'layout' => 'media_left',
             'title' => 'Section lama',
             'media_path' => $oldSectionMedia,
+            'thumbnail_path' => $oldSectionThumbnail,
             'is_active' => true,
         ]);
 
         $this->actingAs($admin)->patch(route('admin.sales.update', $sale), [
             'name' => 'Siti HINO',
+            'slug' => 'siti-hino',
             'whatsapp_number' => '081234567890',
             'photo' => UploadedFile::fake()->image('new.jpg'),
             'remove_documentation_photos' => [$oldDocumentation],
@@ -193,6 +196,7 @@ class AdminSalesProfileTest extends TestCase
         Storage::disk('public')->assertMissing($newPhoto);
         Storage::disk('public')->assertMissing($oldHero);
         Storage::disk('public')->assertMissing($oldSectionMedia);
+        Storage::disk('public')->assertMissing($oldSectionThumbnail);
         $this->assertDatabaseMissing('sales_profiles', ['id' => $sale->id]);
     }
 
@@ -272,8 +276,45 @@ class AdminSalesProfileTest extends TestCase
             ->assertDontSee('Section nonaktif');
     }
 
+    public function test_public_sales_page_embeds_tiktok_and_uses_thumbnail_for_unsupported_video_links(): void
+    {
+        $sale = SalesProfile::query()->create([
+            'slug' => 'video-sosial',
+            'name' => 'Video Sosial',
+        ]);
+        $sale->sections()->createMany([
+            [
+                'type' => 'video',
+                'layout' => 'video_left',
+                'title' => 'Video TikTok',
+                'media_url' => 'https://www.tiktok.com/@hino/video/7460123456789012345',
+                'sort_order' => 0,
+                'is_active' => true,
+            ],
+            [
+                'type' => 'video',
+                'layout' => 'video_right',
+                'title' => 'Video sumber lain',
+                'media_url' => 'https://video.example.com/post/armada',
+                'thumbnail_url' => 'https://cdn.example.com/armada.webp',
+                'button_label' => 'Info Pemesanan',
+                'button_url' => 'https://wa.me/6281234567890',
+                'sort_order' => 1,
+                'is_active' => true,
+            ],
+        ]);
+
+        $this->get(route('sales.profile', $sale->slug))
+            ->assertOk()
+            ->assertSee('https://www.tiktok.com/player/v1/7460123456789012345', false)
+            ->assertSee('https://cdn.example.com/armada.webp', false)
+            ->assertSee('external-link-icon', false)
+            ->assertDontSee('↗');
+    }
+
     public function test_admin_can_choose_a_card_layout_for_video_sections(): void
     {
+        Storage::fake('public');
         $admin = User::factory()->admin()->create();
         $sale = SalesProfile::query()->create([
             'slug' => 'video-card-sales',
@@ -287,6 +328,7 @@ class AdminSalesProfileTest extends TestCase
 
         $this->actingAs($admin)->patch(route('admin.sales.update', $sale), [
             'name' => 'Video Card Sales',
+            'slug' => 'video-card-sales',
             'account_enabled' => '0',
             'sections' => [[
                 'type' => 'video',
@@ -295,11 +337,15 @@ class AdminSalesProfileTest extends TestCase
                 'title' => 'Video di sisi kanan',
                 'body' => 'Teks tetap terbaca di sisi kiri.',
                 'media_url' => 'https://www.youtube.com/watch?v=abcdefghijk',
+                'thumbnail_file' => UploadedFile::fake()->image('video-thumbnail.jpg', 1200, 675),
                 'is_active' => '1',
             ]],
         ])->assertRedirect(route('admin.sales.index'));
 
-        $this->assertSame('video_right', $sale->sections()->sole()->layout);
+        $videoSection = $sale->sections()->sole();
+
+        $this->assertSame('video_right', $videoSection->layout);
+        Storage::disk('public')->assertExists($videoSection->thumbnail_path);
 
         $this->get(route('sales.profile', $sale->slug))
             ->assertOk()
